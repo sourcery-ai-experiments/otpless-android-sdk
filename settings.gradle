@@ -1,0 +1,3 @@
+include ':OtpLess'
+include ':app'
+rootProject.name = "OtpLessSample"

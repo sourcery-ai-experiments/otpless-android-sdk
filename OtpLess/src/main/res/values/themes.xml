@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.Otpless" parent="Theme.AppCompat.DayNight.DarkActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">#23D366</item>
+        <item name="colorPrimaryDark">#23D366</item>
+        <!-- Customize your theme here. -->
+    </style>
+</resources>
