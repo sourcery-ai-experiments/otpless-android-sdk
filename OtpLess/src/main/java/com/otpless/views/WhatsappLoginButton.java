@@ -3,19 +3,19 @@ package com.otpless.views;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.AttributeSet;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
@@ -32,19 +32,15 @@ import com.otpless.utils.Utility;
 
 import org.json.JSONObject;
 
-public class WhatsappLoginButton extends androidx.appcompat.widget.AppCompatButton implements View.OnClickListener, LifecycleObserver {
+public class WhatsappLoginButton extends ConstraintLayout implements View.OnClickListener, LifecycleObserver {
 
     private static final String WHATSAPP_PACKAGE = "com.whatsapp";
     private static final String WHATSAPP_BUSINESS_PACKAGE = "com.whatsapp.w4b";
 
-    private Paint paint;
-    private RectF rectF;
-    private Drawable icon;
-    private int backgroundColor;
     private String otplessLink = null;
+    private TextView mTextView;
 
     private OtplessUserDetailCallback mUserCallback;
-
     private ActivityResultLauncher<Uri> launcher;
 
     public WhatsappLoginButton(Context context) {
@@ -62,47 +58,6 @@ public class WhatsappLoginButton extends androidx.appcompat.widget.AppCompatButt
         init(attrs);
     }
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int desiredWidth = 100;
-        int desiredHeight = 100;
-
-        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
-
-        int width;
-        int height;
-
-        //Measure Width
-        if (widthMode == MeasureSpec.EXACTLY) {
-            //Must be this size
-            width = widthSize;
-        } else if (widthMode == MeasureSpec.AT_MOST) {
-            //Can't be bigger than...
-            width = (int) (((float) widthSize) * 0.8);
-        } else {
-            //Be whatever you want
-            width = desiredWidth;
-        }
-
-        //Measure Height
-        if (heightMode == MeasureSpec.EXACTLY) {
-            //Must be this size
-            height = heightSize;
-        } else if (heightMode == MeasureSpec.AT_MOST) {
-            //Can't be bigger than...
-            height = (int) (0.18 * ((float) width));
-        } else {
-            //Be whatever you want
-            height = desiredHeight;
-        }
-
-        //MUST CALL THIS
-        setMeasuredDimension(width, height);
-    }
-
     private void init(AttributeSet attrs) {
         // parsing otpless link attribute
         if (attrs != null) {
@@ -112,41 +67,68 @@ public class WhatsappLoginButton extends androidx.appcompat.widget.AppCompatButt
             try {
                 final Uri uri = Uri.parse(this.otplessLink);
                 // base url created
-                ApiManager.getInstance().baseUrl = uri.getScheme() + "://" +uri.getHost() + "/";
-            } catch (Exception ignore){}
+                ApiManager.getInstance().baseUrl = uri.getScheme() + "://" + uri.getHost() + "/";
+            } catch (Exception ignore) {
+            }
             a.recycle();
         }
-
+        addInternalViews(attrs);
         // setting background and style
-        backgroundColor = Color.rgb(35, 211, 102);
-        paint = new Paint();
-        paint.setColor(backgroundColor);
-        paint.setAntiAlias(true);
-        rectF = new RectF();
-        icon = ContextCompat.getDrawable(getContext(), R.drawable.icons8_whatsapp_96); // The image you want to use
-        final String text = "Continue with WhatsApp";
-        setText(text);
+        final Drawable background = ContextCompat.getDrawable(getContext(), R.drawable.whatsapp_btn_bg);
+        setBackground(background);
         final int horPad = getResources().getDimensionPixelSize(R.dimen.button_padding_horizontal);
         final int verPad = getResources().getDimensionPixelSize(R.dimen.button_padding_vertical);
         setPadding(horPad, verPad, horPad, verPad);
-        setTextColor(Color.WHITE);
-        setTypeface(getTypeface(), Typeface.BOLD);
-        setTextSize(20);
-        this.setAllCaps(false);
         this.setOnClickListener(this);
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        float cornerRadius = 20.0f;
-        rectF.set(0, 0, this.getWidth(), this.getHeight());
-        canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, paint);
-        int iconHeight = getHeight() / 2;
-        int x = iconHeight / 3;
-        int y = (this.getHeight() - iconHeight) / 2;
-        icon.setBounds(x, y, x + iconHeight, y + iconHeight);
-        icon.draw(canvas);
-        super.onDraw(canvas);
+    private void addInternalViews(final AttributeSet attr) {
+        mTextView = new TextView(getContext(), attr);
+        mTextView.setId(View.generateViewId());
+        final String text = "Continue with WhatsApp";
+        mTextView.setText(text);
+        mTextView.setTextColor(Color.WHITE);
+        final Typeface typeface = mTextView.getTypeface();
+        mTextView.setTypeface(typeface, Typeface.BOLD);
+        mTextView.setTextSize(20);
+        mTextView.setAllCaps(false);
+        final ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(
+                LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT
+        );
+        final int horPad = getResources().getDimensionPixelSize(R.dimen.button_padding_horizontal);
+        params.topMargin = horPad;
+        params.bottomMargin = horPad;
+        // setting constraints
+        params.bottomToBottom = this.getId();
+        params.topToTop = this.getId();
+        params.leftToLeft = this.getId();
+        params.rightToRight = this.getId();
+        mTextView.setLayoutParams(params);
+        addView(mTextView);
+
+        // adding whatsapp image
+        final int imageSize = getResources().getDimensionPixelSize(R.dimen.otpless_whatsapp_dim);
+        final ConstraintLayout.LayoutParams imgParam = new ConstraintLayout.LayoutParams(
+                imageSize, imageSize
+        );
+        final ImageView whatsappIv = new ImageView(getContext(), attr);
+        whatsappIv.setId(View.generateViewId());
+        // setting up constraints
+        imgParam.topToTop = mTextView.getId();
+        imgParam.bottomToBottom = mTextView.getId();
+        imgParam.rightToLeft = mTextView.getId();
+        imgParam.rightMargin = horPad;
+        // setting up layout params
+        whatsappIv.setLayoutParams(imgParam);
+        // setting drawable
+        final Drawable whatsappBg = ContextCompat.getDrawable(getContext(), R.drawable.icons8_whatsapp_48);
+        whatsappIv.setBackground(whatsappBg);
+        // adding view in constraint layout
+        addView(whatsappIv);
+    }
+
+    private void setText(final String text) {
+        mTextView.setText(text);
     }
 
     @Override

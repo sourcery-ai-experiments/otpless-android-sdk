@@ -18,12 +18,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        WhatsappLoginButton button = (WhatsappLoginButton) findViewById(R.id.whatsapp_login);
-        button.setResultCallback((data) -> {
-            if (Utility.isNotEmpty(data.getWaId())) {
-                afterSessionId();
-            }
-        });
+//        WhatsappLoginButton button = (WhatsappLoginButton) findViewById(R.id.whatsapp_login);
+//        button.setResultCallback((data) -> {
+//            if (Utility.isNotEmpty(data.getWaId())) {
+//                afterSessionId();
+//            }
+//        });
     }
 
     private void afterSessionId() {
