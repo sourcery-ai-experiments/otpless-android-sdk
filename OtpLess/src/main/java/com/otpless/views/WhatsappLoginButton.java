@@ -1,6 +1,7 @@
 package com.otpless.views;
 
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -9,9 +10,6 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.Toast;
@@ -28,19 +26,17 @@ import androidx.lifecycle.OnLifecycleEvent;
 import com.otpless.R;
 import com.otpless.dto.OtplessResponse;
 import com.otpless.main.OtplessResultContract;
+import com.otpless.network.ApiCallback;
+import com.otpless.network.ApiManager;
+import com.otpless.utils.Utility;
 
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
-import javax.net.ssl.HttpsURLConnection;
-
 public class WhatsappLoginButton extends androidx.appcompat.widget.AppCompatButton implements View.OnClickListener, LifecycleObserver {
+
+    private static final String WHATSAPP_PACKAGE = "com.whatsapp";
+    private static final String WHATSAPP_BUSINESS_PACKAGE = "com.whatsapp.w4b";
+
     private Paint paint;
     private RectF rectF;
     private Drawable icon;
@@ -50,10 +46,6 @@ public class WhatsappLoginButton extends androidx.appcompat.widget.AppCompatButt
     private OtplessUserDetailCallback mUserCallback;
 
     private ActivityResultLauncher<Uri> launcher;
-
-    private HandlerThread mNetworkThread;
-    private Handler mHandler;
-    private Handler mUiHandler;
 
     public WhatsappLoginButton(Context context) {
         super(context);
@@ -112,11 +104,6 @@ public class WhatsappLoginButton extends androidx.appcompat.widget.AppCompatButt
     }
 
     private void init(AttributeSet attrs) {
-        // init handler
-        mNetworkThread = new HandlerThread("OtplessNetworkThread");
-        mNetworkThread.start();
-        mHandler = new Handler(mNetworkThread.getLooper());
-        mUiHandler = new Handler(Looper.getMainLooper());
         // parsing otpless link attribute
         if (attrs != null) {
             TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.WhatsappLoginButton);
@@ -132,6 +119,9 @@ public class WhatsappLoginButton extends androidx.appcompat.widget.AppCompatButt
         icon = ContextCompat.getDrawable(getContext(), R.drawable.icons8_whatsapp_96); // The image you want to use
         final String text = "Continue with WhatsApp";
         setText(text);
+        final int horPad = getResources().getDimensionPixelSize(R.dimen.button_padding_horizontal);
+        final int verPad = getResources().getDimensionPixelSize(R.dimen.button_padding_vertical);
+        setPadding(horPad, verPad, horPad, verPad);
         setTextColor(Color.WHITE);
         setTypeface(getTypeface(), Typeface.BOLD);
         setTextSize(20);
@@ -155,6 +145,13 @@ public class WhatsappLoginButton extends androidx.appcompat.widget.AppCompatButt
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
+        // check if whatsapp package are not installed then mark the view gone
+        PackageManager pm = getContext().getPackageManager();
+        if (!Utility.isAppInstalled(pm, WHATSAPP_PACKAGE) && !Utility.isAppInstalled(pm, WHATSAPP_BUSINESS_PACKAGE)) {
+            this.setVisibility(View.GONE);
+            return;
+        }
+
         if (getContext() instanceof FragmentActivity) {
             FragmentActivity activity = (FragmentActivity) getContext();
             launcher = activity.registerForActivityResult(new OtplessResultContract(), this::onOtplessResult);
@@ -173,56 +170,23 @@ public class WhatsappLoginButton extends androidx.appcompat.widget.AppCompatButt
             Toast.makeText(getContext(), "Button loaded without waID", Toast.LENGTH_SHORT).show();
             return;
         }
-        mHandler.post(() -> {
-            try {
-                URL url = new URL("https://anubhav.authlink.me");
-                HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setDoOutput(true);
-                conn.setDoInput(true);
-                conn.setRequestProperty("Content-Type", "application/json");
-                conn.setRequestProperty("Accept", "application/json");
-                conn.setRequestProperty("clientId", "izzl60o6");
-                conn.setRequestProperty("clientSecret", "im3bxbbeea81o8ge");
-
-                JSONObject jsonParam = new JSONObject();
-                jsonParam.put("waId", waid);
-
-                OutputStream os = conn.getOutputStream();
-                os.write(jsonParam.toString().getBytes());
-                os.flush();
-                os.close();
-
-                int responseCode = conn.getResponseCode();
-                if (responseCode == HttpURLConnection.HTTP_OK) {
-                    // success
-                    final InputStream is = conn.getInputStream();
-                    final BufferedReader bis = new BufferedReader(new InputStreamReader(is));
-                    final StringBuilder writer = new StringBuilder();
-                    while (true) {
-                        String line =bis.readLine();
-                        if (line == null) {
-                            break;
+        ApiManager.getInstance().verifyWaId(
+                waid, new ApiCallback<JSONObject>() {
+                    @Override
+                    public void onSuccess(JSONObject data) {
+                        final String waNumber = Utility.parseWaNumber(data);
+                        if (Utility.isNotEmpty(waNumber)) {
+                            setText(waNumber);
                         }
-                        writer.append(line);
                     }
-                    final String responseStr = writer.toString();
-                    JSONObject jsonObject = new JSONObject(responseStr);
-                    JSONObject user = jsonObject.optJSONObject("user");
-                    mUiHandler.post(() ->
-                        Toast.makeText(getContext(), responseStr , Toast.LENGTH_LONG).show()
-                    );
-                    if (user != null) {
-                        final String number = user.optString("waNumber");
-                        mUiHandler.post(() -> setText(number));
+
+                    @Override
+                    public void onError(Exception exception) {
+                        exception.printStackTrace();
+                        Utility.deleteWaId(getContext());
                     }
-                    // read the response
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                mUiHandler.post(() -> Toast.makeText(getContext(), "error: " + e.getMessage() , Toast.LENGTH_LONG).show());
-            }
-        });
+        );
     }
 
     private void onOtplessResult(@Nullable OtplessResponse userDetail) {
@@ -249,6 +213,5 @@ public class WhatsappLoginButton extends androidx.appcompat.widget.AppCompatButt
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     public void onDestroyed() {
-        mNetworkThread.quit();
     }
 }

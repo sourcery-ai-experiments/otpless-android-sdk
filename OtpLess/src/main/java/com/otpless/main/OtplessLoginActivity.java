@@ -7,16 +7,23 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.widget.Toast;
+import android.view.View;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.otpless.R;
 import com.otpless.config.Configuration;
+import com.otpless.network.ApiCallback;
+import com.otpless.network.ApiManager;
 import com.otpless.utils.Utility;
+
+import org.json.JSONObject;
 
 
 public class OtplessLoginActivity extends AppCompatActivity {
+
+    private TextView mCancelTv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +53,39 @@ public class OtplessLoginActivity extends AppCompatActivity {
             checkVerifyOtpless(intent);
             return;
         }
-        //endregion
+        // setting cancel callback
+        mCancelTv =  findViewById(R.id.cancel_tv);
+        mCancelTv.setOnClickListener((v) ->
+            returnWithError("user cancelled")
+        );
+
+        final String waid = getSharedPreferences("otpless_storage_manager", Context.MODE_PRIVATE).getString("otpless_waid", null);
+        if (waid != null) {
+            ApiManager.getInstance().verifyWaId(
+                    waid, new ApiCallback<JSONObject>() {
+                        @Override
+                        public void onSuccess(JSONObject data) {
+                            Intent resultIntent = new Intent();
+                            resultIntent.putExtra("waId", waid);
+                            setResult(Activity.RESULT_OK, resultIntent);
+                            finish();
+                        }
+
+                        @Override
+                        public void onError(Exception exception) {
+                            exception.printStackTrace();
+                            Utility.deleteWaId(OtplessLoginActivity.this);
+                            openActionView();
+                        }
+                    }
+            );
+        } else {
+            openActionView();
+        }
+    }
+
+    private void openActionView() {
+        final Intent intent = getIntent();
         Parcelable parcelable = intent.getParcelableExtra("otpless_request");
         if (parcelable instanceof Uri) {
             Uri request = (Uri) parcelable;
@@ -70,14 +109,30 @@ public class OtplessLoginActivity extends AppCompatActivity {
         if (uri == null) return;
         if (!"otpless".equals(uri.getScheme())) return;
         String waId = uri.getQueryParameter("waId");
-        Intent resultIntent = new Intent();
-        resultIntent.putExtra("waId", waId);
-        setResult(Activity.RESULT_OK, resultIntent);
-        SharedPreferences sp = getSharedPreferences("otpless_storage_manager", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putString("otpless_waid", waId);
-        editor.apply();
-        Toast.makeText(this, waId, Toast.LENGTH_LONG).show();
-        finish();
+        mCancelTv.setVisibility(View.GONE);
+        // check the validity of waId with otpless
+        ApiManager.getInstance().verifyWaId(
+                waId, new ApiCallback<JSONObject>() {
+                    @Override
+                    public void onSuccess(JSONObject data) {
+                        Intent resultIntent = new Intent();
+                        resultIntent.putExtra("waId", waId);
+                        setResult(Activity.RESULT_OK, resultIntent);
+                        // save waId in share pref
+                        SharedPreferences sp = getSharedPreferences("otpless_storage_manager", Context.MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sp.edit();
+                        editor.putString("otpless_waid", waId);
+                        editor.apply();
+                        finish();
+                    }
+
+                    @Override
+                    public void onError(Exception exception) {
+                        exception.printStackTrace();
+                        Utility.deleteWaId(OtplessLoginActivity.this);
+                        returnWithError(exception.getMessage());
+                    }
+                }
+        );
     }
 }

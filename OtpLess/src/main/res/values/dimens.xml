@@ -11,4 +11,7 @@
     <dimen name="dim_20">20dp</dimen>
 
     <dimen name="progress_bar_size">80dp</dimen>
+
+    <dimen name="button_padding_horizontal">10dp</dimen>
+    <dimen name="button_padding_vertical">2dp</dimen>
 </resources>

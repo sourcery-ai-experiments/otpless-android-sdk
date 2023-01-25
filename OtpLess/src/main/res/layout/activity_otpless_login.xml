@@ -15,7 +15,7 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:indeterminate="true"
-        android:indeterminateTint="#0d6efd"
+        android:indeterminateTint="@color/otpless_primary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -30,10 +30,28 @@
         android:layout_marginTop="24dp"
         android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:textSize="16sp"
-        android:text = "Please wait..."
+        android:text = "Verifying..."
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/otpless_progress_bar" />
+
+    <TextView
+        android:id="@+id/cancel_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="16dp"
+        android:text="Cancel"
+        android:gravity="center"
+        android:textColor="@color/otpless_gray"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:paddingVertical="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
