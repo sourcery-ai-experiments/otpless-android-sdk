@@ -16,10 +16,10 @@ public class Utility {
         }
     }
 
-    public static String parseWaNumber(final JSONObject jsonObject) {
-        JSONObject user = jsonObject.optJSONObject("user");
+    public static String parseUserNumber(final JSONObject jsonObject) {
+        JSONObject user = jsonObject.optJSONObject("data");
         if (user != null) {
-            return user.optString("waNumber");
+            return user.optString("userMobile");
         }
         return null;
     }

@@ -108,8 +108,15 @@ public class WhatsappLoginButton extends androidx.appcompat.widget.AppCompatButt
         if (attrs != null) {
             TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.WhatsappLoginButton);
             this.otplessLink = a.getString(R.styleable.WhatsappLoginButton_otpless_link);
+            // parsing host name
+            try {
+                final Uri uri = Uri.parse(this.otplessLink);
+                // base url created
+                ApiManager.getInstance().baseUrl = uri.getScheme() + "://" +uri.getHost() + "/";
+            } catch (Exception ignore){}
             a.recycle();
         }
+
         // setting background and style
         backgroundColor = Color.rgb(35, 211, 102);
         paint = new Paint();
@@ -174,9 +181,9 @@ public class WhatsappLoginButton extends androidx.appcompat.widget.AppCompatButt
                 waid, new ApiCallback<JSONObject>() {
                     @Override
                     public void onSuccess(JSONObject data) {
-                        final String waNumber = Utility.parseWaNumber(data);
-                        if (Utility.isNotEmpty(waNumber)) {
-                            setText(waNumber);
+                        final String userNumber = Utility.parseUserNumber(data);
+                        if (Utility.isNotEmpty(userNumber)) {
+                            setText(userNumber);
                         }
                     }
 
@@ -192,6 +199,10 @@ public class WhatsappLoginButton extends androidx.appcompat.widget.AppCompatButt
     private void onOtplessResult(@Nullable OtplessResponse userDetail) {
         if (this.mUserCallback != null) {
             this.mUserCallback.onOtplessUserDetail(userDetail);
+        }
+        // set userNumber on button
+        if (userDetail != null && userDetail.getUserNumber() != null) {
+            setText(userDetail.getUserNumber());
         }
     }
 

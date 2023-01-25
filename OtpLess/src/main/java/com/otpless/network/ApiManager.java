@@ -23,6 +23,10 @@ public class ApiManager {
     private final Handler mHandler;
     private final Handler mUiHandler;
 
+    public String baseUrl = "";
+
+    private final  String META_VERSE = "metaverse";
+
     private ApiManager() {
         mNetworkThread = new HandlerThread("OtplessNetworkThread");
         mNetworkThread.start();
@@ -45,18 +49,17 @@ public class ApiManager {
     public void verifyWaId(final String waid, final ApiCallback<JSONObject> callback) {
         mHandler.post(() -> {
             try {
-                URL url = new URL("https://anubhav.authlink.me");
+                URL url = new URL(baseUrl + META_VERSE);
                 HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
                 conn.setDoOutput(true);
                 conn.setDoInput(true);
                 conn.setRequestProperty("Content-Type", "application/json");
                 conn.setRequestProperty("Accept", "application/json");
-                conn.setRequestProperty("clientId", "izzl60o6");
-                conn.setRequestProperty("clientSecret", "im3bxbbeea81o8ge");
 
                 JSONObject jsonParam = new JSONObject();
-                jsonParam.put("waId", waid);
+                jsonParam.put("userId", waid);
+                jsonParam.put("api", "getUserDetail");
 
                 OutputStream os = conn.getOutputStream();
                 os.write(jsonParam.toString().getBytes());
@@ -94,7 +97,6 @@ public class ApiManager {
     }
 
     private boolean isValidStatus(final JSONObject jsonObject) {
-        final String statusCode = jsonObject.optString("statusCode");
-        return "200".equals(statusCode);
+        return jsonObject.optBoolean("success");
     }
 }

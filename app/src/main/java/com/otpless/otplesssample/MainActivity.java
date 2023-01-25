@@ -1,5 +1,6 @@
 package com.otpless.otplesssample;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
@@ -8,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.otpless.dto.OtplessResponse;
+import com.otpless.utils.Utility;
 import com.otpless.views.WhatsappLoginButton;
 
 public class MainActivity extends AppCompatActivity {
@@ -17,13 +19,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         WhatsappLoginButton button = (WhatsappLoginButton) findViewById(R.id.whatsapp_login);
-        button.setResultCallback(this::onOtplessResult);
+        button.setResultCallback((data) -> {
+            if (Utility.isNotEmpty(data.getWaId())) {
+                afterSessionId();
+            }
+        });
+    }
+
+    private void afterSessionId() {
+        final Intent intent = new Intent(this, HomeActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private void onOtplessResult(@Nullable OtplessResponse userDetail) {
         if (userDetail == null) return;
         String message = userDetail.toString();
-        message = userDetail.getWaId() + "\n" +message;
+        message = userDetail.getWaId() + "\n" + message;
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         Log.d("MainActivity", message);
     }

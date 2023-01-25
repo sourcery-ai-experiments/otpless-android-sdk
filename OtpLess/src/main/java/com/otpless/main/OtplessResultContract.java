@@ -39,6 +39,8 @@ public class OtplessResultContract extends ActivityResultContract<Uri, OtplessRe
             final OtplessResponse userDetail =  new OtplessResponse();
             userDetail.setWaId(waid);
             userDetail.setStatus("success");
+            final String userNumber = intent.getStringExtra("userNumber");
+            userDetail.setUserNumber(userNumber);
             return userDetail;
         }
         return null;

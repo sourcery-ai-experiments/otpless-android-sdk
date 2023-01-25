@@ -16,6 +16,9 @@ public class OtplessResponse implements Serializable {
     @SerializedName("waId")
     private String waId;
 
+    @SerializedName("userNumber")
+    private String userNumber;
+
     public String getStatus() {
         return status;
     }
@@ -38,6 +41,14 @@ public class OtplessResponse implements Serializable {
 
     public void setWaId(String waId) {
         this.waId = waId;
+    }
+
+    public String getUserNumber() {
+        return userNumber;
+    }
+
+    public void setUserNumber(String userNumber) {
+        this.userNumber = userNumber;
     }
 
     @Override

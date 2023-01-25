@@ -67,6 +67,8 @@ public class OtplessLoginActivity extends AppCompatActivity {
                         public void onSuccess(JSONObject data) {
                             Intent resultIntent = new Intent();
                             resultIntent.putExtra("waId", waid);
+                            String userNumber = Utility.parseUserNumber(data);
+                            resultIntent.putExtra("userNumber", userNumber);
                             setResult(Activity.RESULT_OK, resultIntent);
                             finish();
                         }
@@ -117,6 +119,8 @@ public class OtplessLoginActivity extends AppCompatActivity {
                     public void onSuccess(JSONObject data) {
                         Intent resultIntent = new Intent();
                         resultIntent.putExtra("waId", waId);
+                        String userNumber = Utility.parseUserNumber(data);
+                        resultIntent.putExtra("userNumber", userNumber);
                         setResult(Activity.RESULT_OK, resultIntent);
                         // save waId in share pref
                         SharedPreferences sp = getSharedPreferences("otpless_storage_manager", Context.MODE_PRIVATE);
