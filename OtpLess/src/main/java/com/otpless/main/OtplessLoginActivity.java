@@ -40,6 +40,7 @@ public class OtplessLoginActivity extends AppCompatActivity {
     }
 
     private void initView() {
+        mCancelTv =  findViewById(R.id.cancel_tv);
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
@@ -49,12 +50,11 @@ public class OtplessLoginActivity extends AppCompatActivity {
             returnWithError("whatsapp not installed");
             return;
         }
-        if (uri != null && "otpless".equals(uri.getHost())) {
+        if (uri != null && "otpless".equals(uri.getScheme())) {
             checkVerifyOtpless(intent);
             return;
         }
         // setting cancel callback
-        mCancelTv =  findViewById(R.id.cancel_tv);
         mCancelTv.setOnClickListener((v) ->
             returnWithError("user cancelled")
         );
