@@ -95,7 +95,7 @@ public class WhatsappLoginButton extends ConstraintLayout implements View.OnClic
         final ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT
         );
-        final int horPad = getResources().getDimensionPixelSize(R.dimen.button_padding_horizontal);
+        final int horPad = getResources().getDimensionPixelSize(R.dimen.otpless_btn_top_margin);
         params.topMargin = horPad;
         params.bottomMargin = horPad;
         // setting constraints
