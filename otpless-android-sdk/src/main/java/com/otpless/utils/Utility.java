@@ -3,10 +3,22 @@ package com.otpless.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-
+import android.os.Build;
+import android.provider.Settings;
 import org.json.JSONObject;
 
 public class Utility {
+
+    private static final String DEVICE_ID = "deviceId";
+    private static final String PACKAGENAME = "package";
+    private static final String PLATFORM = "platform";
+    private static final String OSVERSION = "osVersion";
+    private static final String MANUFACTURER = "manufacturer";
+    private static final String APP_VERSION_NAME = "appVersionName";
+    private static final String APP_VERSION_CODE = "appVersionCode";
+    private static final String SDKVERSION = "sdkVersion";
+    private static final String SDKVERSIONVALUE = "1.0.1";
+
 
     public static boolean isAppInstalled(final PackageManager packageManager, final String packageName) {
         try {
@@ -34,4 +46,34 @@ public class Utility {
         editor.remove("otpless_waid");
         editor.apply();
     }
+
+    public static String getUrlWithDeviceParams(Context context, String url){
+        if (url == null)
+            return url;
+        try{
+            StringBuffer urlBuffer = new StringBuffer(url);
+            String deviceId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+            urlBuffer.append("&"+DEVICE_ID+"="+deviceId);
+            String packageName = context.getPackageName();
+            urlBuffer.append("&"+PACKAGENAME+"="+packageName);
+            String platform = "android";
+            urlBuffer.append("&"+PLATFORM+"="+platform);
+            String osVersion = String.valueOf(Build.VERSION.SDK_INT);
+            urlBuffer.append("&"+OSVERSION+"="+osVersion);
+            String manufacturer = Build.MANUFACTURER;
+            urlBuffer.append("&"+MANUFACTURER+"="+manufacturer);
+            String versionName = context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), 0).versionName;
+            urlBuffer.append("&"+APP_VERSION_NAME+"="+versionName);
+            String versionCode = String.valueOf( context.getPackageManager()
+                     .getPackageInfo(context.getPackageName(), 0).versionCode);
+            urlBuffer.append("&"+APP_VERSION_CODE+"="+versionCode);
+            urlBuffer.append("&"+SDKVERSION+"="+SDKVERSIONVALUE);
+            return urlBuffer.toString();
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return url;
+    }
+
 }

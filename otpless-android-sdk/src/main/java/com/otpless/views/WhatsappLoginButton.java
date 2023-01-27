@@ -11,7 +11,6 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.Nullable;
@@ -63,6 +62,7 @@ public class WhatsappLoginButton extends ConstraintLayout implements View.OnClic
         if (attrs != null) {
             TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.WhatsappLoginButton);
             this.otplessLink = a.getString(R.styleable.WhatsappLoginButton_otpless_link);
+            this.otplessLink =  Utility.getUrlWithDeviceParams(getContext().getApplicationContext(),this.otplessLink);
             // parsing host name
             try {
                 final Uri uri = Uri.parse(this.otplessLink);
@@ -156,7 +156,6 @@ public class WhatsappLoginButton extends ConstraintLayout implements View.OnClic
     private void checkForWaid() {
         final String waid = getContext().getSharedPreferences("otpless_storage_manager", Context.MODE_PRIVATE).getString("otpless_waid", null);
         if (waid == null) {
-            Toast.makeText(getContext(), "Button loaded without waID", Toast.LENGTH_SHORT).show();
             return;
         }
         ApiManager.getInstance().verifyWaId(
