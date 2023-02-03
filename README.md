@@ -1,6 +1,12 @@
-# android-sdk-otpless
+
+<p align="center">
+  <img src="https://github.com/otpless-tech/otpless-android-sdk/blob/Images-and-readme-changes/otpless.svg" height="220"/>
+</p>
 
 [![](https://jitpack.io/v/otpless-tech/otpless-android-sdk.svg)](https://jitpack.io/#otpless-tech/otpless-android-sdk)
+
+# android-sdk-otpless
+Otpless authentication sdk for android
 
 
 ## Download
@@ -11,7 +17,7 @@ repository {
 }
 
 dependency {
-    implementation 'com.otplesslabs:otpless-android-sdk:1.0.0'
+    implementation 'com.otplesslabs:otpless-android-sdk:LATEST-TAG'
 }
 
 ```
