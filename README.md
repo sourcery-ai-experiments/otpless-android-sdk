@@ -3,7 +3,7 @@
   <img src="https://github.com/otpless-tech/otpless-android-sdk/blob/Images-and-readme-changes/otpless.svg" height="220"/>
 </p>
 <p align="center">
-  <img src="https://github.com/otpless-tech/otpless-android-sdk/blob/Images-and-readme-changes/android-icon.svg" height="50" width "50"/>
+  <img src="https://github.com/otpless-tech/otpless-android-sdk/blob/main/android-icon.svg" height="50" width "50"/>
 </p>
 
 
