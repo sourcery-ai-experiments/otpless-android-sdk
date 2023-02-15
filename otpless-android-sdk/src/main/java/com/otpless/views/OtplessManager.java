@@ -71,7 +71,7 @@ public class OtplessManager {
      * NOT RECOMMENDED until and unless these is a specific requirement to clear all session
      */
     public void signOut(final Context context){
-        Utility.deleteWaId(context));
+        Utility.deleteWaId(context);
     }
 
     /**
