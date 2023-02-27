@@ -1,26 +1,24 @@
 package com.otpless.views;
 
+import static com.otpless.utils.Utility.getSchemeHost;
 import static com.otpless.utils.Utility.isNotEmpty;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
 import com.otpless.network.ApiManager;
+import com.otpless.utils.SchemeHostMetaInfo;
 import com.otpless.utils.Utility;
 
 public class OtplessManager {
 
     private static OtplessManager sInstance = null;
-    private String urlDump = "https://*.authlink.me";
+    private static final String URL_PATTERN = "https://%s.authlink.me";
     public String redirectUrl = "";
-    public String apiURl = "";
 
     public static OtplessManager getInstance() {
         if (sInstance == null) {
@@ -41,58 +39,44 @@ public class OtplessManager {
     }
 
     public void init(final FragmentActivity activity) {
-
         this.setUrlRedirectURI(activity);
-        this.mOtpImpl.add(activity
-        );
+        this.mOtpImpl.add(activity);
     }
-    private void setUrlRedirectURI(FragmentActivity activity){
-        if (this.redirectUrl != null && this.redirectUrl.length() > 0 && this.apiURl != null && this.apiURl.length() > 0){
+
+    private void setUrlRedirectURI(FragmentActivity activity) {
+        if (Utility.isValid(redirectUrl, ApiManager.getInstance().baseUrl)) {
             return;
         }
-        try {
-            ApplicationInfo ai = activity.getPackageManager().getApplicationInfo(activity.getPackageName(), PackageManager.GET_META_DATA);
-            Object schemeObj = (Object)ai.metaData.get("otpless.deeplink.scheme");
-            Object hostObj = (Object)ai.metaData.get("otpless.deeplink.host");
-            String scheme = schemeObj.toString();
-            String host = hostObj.toString();
-            if (this.apiURl == null || this.apiURl.length() == 0){
-                String packageName = activity.getApplicationContext().getPackageName();
-                String domainHost = packageName.replace(".","-");
-                this.apiURl = this.urlDump.replace("*",domainHost);
-                ApiManager.getInstance().baseUrl = this.apiURl ;
-            }
-            this.redirectUrl = this.apiURl + "?redirectUri=" + scheme + "://" + host;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+        String packageName = activity.getApplicationContext().getPackageName();
+        String domainHost = packageName.replace(".", "-");
+        final String apiURl = String.format(URL_PATTERN, domainHost);
+        ApiManager.getInstance().baseUrl = apiURl;
+        final SchemeHostMetaInfo info = getSchemeHost(activity);
+        if (info != null) {
+            redirectUrl = apiURl + "?redirectUri=" + info.getScheme() + "://" + info.getHost();
         }
     }
-    public String getApiURl(Context context){
-        if (this.apiURl != null && this.apiURl.length() > 0){
-            return this.apiURl;
-        } else {
 
-            String packageName = context.getApplicationContext().getPackageName();
-            String domainHost = packageName.replace(".","-");
-            this.apiURl = this.urlDump.replace("*",domainHost);
-            return  this.apiURl;
-        }
-    }
     public void launch(final Context context, final String link, final OtplessUserDetailCallback callback) {
-       if (this.redirectUrl != link){
-           this.redirectUrl = link;
-           String baseUrl = ApiManager.getInstance().baseUrl;
-           if (link != null) {
-               final Uri uri = Uri.parse(link);
-               baseUrl = uri.getScheme() + "://" + uri.getHost();
-               ApiManager.getInstance().baseUrl = baseUrl;
-               this.apiURl = uri.getScheme() + "://" + uri.getHost();
-           }
-       }
-        this.mOtpImpl.launch(context, link, callback);
-    }
-    public void launch(final Context context, final OtplessUserDetailCallback callback) {
-        this.mOtpImpl.launch(context,this.redirectUrl,callback);
+        // if redirectUri is invalid or passed link do not match with redirectUri
+        // create redirectUri and apiUrl from passed link
+        if (!Utility.isValid(redirectUrl) || !this.redirectUrl.equals(link)) {
+            try {
+                final Uri otplessUri = Uri.parse(link);
+                final Uri.Builder builder = otplessUri.buildUpon();
+                builder.clearQuery();
+                final SchemeHostMetaInfo schemeHostMetaInfo = Utility.getSchemeHost(context);
+                if (schemeHostMetaInfo != null) {
+                    final String redirectUri = String.format("%s://%s", schemeHostMetaInfo.getScheme(), schemeHostMetaInfo.getHost());
+                    builder.appendQueryParameter("redirectUri", redirectUri);
+                    this.redirectUrl = builder.build().toString();
+                }
+                ApiManager.getInstance().baseUrl = otplessUri.getScheme() + "://" + otplessUri.getHost();
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        }
+        this.mOtpImpl.launch(context, redirectUrl, callback);
     }
 
     public void setConfiguration(@NonNull final Context context, String backgroundColor,

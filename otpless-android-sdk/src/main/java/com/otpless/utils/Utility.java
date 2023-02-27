@@ -2,6 +2,7 @@ package com.otpless.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
@@ -87,6 +88,29 @@ public class Utility {
         try {
             return Color.parseColor(color);
         } catch (Exception exception) {
+            return null;
+        }
+    }
+
+    public static boolean isValid(String... args) {
+        for (String str: args) {
+            if (str == null || str.length() == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static SchemeHostMetaInfo getSchemeHost(final Context context) {
+        // check the scheme and host with from manifest
+        try {
+            final ApplicationInfo info = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+            String host = info.metaData.getString("otpless.deeplink.host");
+            String scheme = info.metaData.getString("otpless.deeplink.scheme");
+            // host and scheme will always be
+            return new SchemeHostMetaInfo(scheme, host);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
             return null;
         }
     }
