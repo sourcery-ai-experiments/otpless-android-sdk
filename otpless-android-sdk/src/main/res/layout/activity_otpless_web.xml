@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/semi_transparent_gray"
+    tools:context=".main.OtplessWebActivity">
+
+    <FrameLayout
+        android:id="@+id/parent_vg"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:layout_gravity="center|bottom"
+        android:background="@color/otpless_transparent">
+
+        <com.otpless.web.OtplessWebViewWrapper
+            android:id="@+id/otpless_web_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
+
+</FrameLayout>

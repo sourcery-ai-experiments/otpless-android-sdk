@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.otpless">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.GET_SIGNATURES" />
     <queries>
         <package android:name="com.whatsapp"/>
         <package android:name="com.whatsapp.w4b"/>
     </queries>
     <application>
         <activity
-            android:name="com.otpless.main.OtplessLoginActivity"
-            android:exported="true"
-            android:launchMode="singleTop">
+            android:name="com.otpless.main.OtplessWebActivity"
+            android:theme="@style/Theme.Otpless.NoActionBar"
+            android:launchMode="singleTop"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -20,7 +22,5 @@
                     android:scheme= "${applicationId}.otpless"/>
             </intent-filter>
         </activity>
-        <meta-data android:value="${applicationId}.otpless" android:name="otpless.deeplink.scheme"/>
-        <meta-data android:value="otpless" android:name="otpless.deeplink.host"/>
     </application>
 </manifest>
