@@ -20,7 +20,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:host="otpless"
-                    android:scheme= "${applicationId}.otpless"/>
+                    android:scheme= "com.bowled.otpless"/>
             </intent-filter>
         </activity>
     </application>

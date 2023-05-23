@@ -90,7 +90,7 @@ public class OtplessWebActivity extends AppCompatActivity implements WebActivity
 
     private void firstLoad(final String url) {
         final String packageName = this.getApplicationContext().getPackageName();
-        final String loginUrl = packageName + ".otpless://otpless";
+        final String loginUrl = "com.bowled.otpless://otpless";
         final Uri.Builder urlToLoad = Uri.parse(url).buildUpon();
 
         // check for additional json params while loading
