@@ -16,6 +16,8 @@ import androidx.lifecycle.OnLifecycleEvent;
 
 import com.otpless.R;
 import com.otpless.dto.OtplessResponse;
+import com.otpless.main.OtplessEventData;
+import com.otpless.main.OtplessEventCallback;
 import com.otpless.main.OtplessWebResultContract;
 import com.otpless.utils.Utility;
 
@@ -26,6 +28,7 @@ import java.lang.ref.WeakReference;
 class OtplessImpl implements LifecycleObserver {
 
     private OtplessUserDetailCallback mAfterLaunchCallback = null;
+    private OtplessEventCallback mEventCallback = null;
     private ActivityResultLauncher<JSONObject> mWebLaunch;
     private JSONObject mExtraParams;
     private WeakReference<Button> wFabButton = new WeakReference<>(null);
@@ -188,6 +191,29 @@ class OtplessImpl implements LifecycleObserver {
     public void clearReferences() {
         mWebLaunch = null;
         mAfterLaunchCallback = null;
+        mEventCallback = null;
+    }
+
+    void setEventCallback(final OtplessEventCallback callback) {
+        mEventCallback = callback;
+    }
+
+    void sendOtplessEvent(final OtplessEventData event) {
+        if (mEventCallback == null) return;
+        mEventCallback.onOtplessEvent(event);
+    }
+
+    void onSignInCompleted() {
+        // removing fab button
+        final Activity activity = wActivity.get();
+        if (activity == null) return;
+        final Button fab = wFabButton.get();
+        if (fab == null) return;
+        final ViewGroup decorView = wDecorView.get();
+        if (decorView == null) return;
+        final ViewGroup parentView = (ViewGroup) activity.findViewById(android.R.id.content);
+        if (parentView == null) return;
+        parentView.removeView(fab);
     }
 }
 
