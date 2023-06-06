@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ProgressBar;
 
+import com.otpless.BuildConfig;
 import com.otpless.R;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
@@ -75,6 +77,21 @@ public class OtplessWebActivity extends AppCompatActivity implements WebActivity
                 }
             };
         }
+
+        // add slide up animation
+        final Animation animation = AnimationUtils.loadAnimation(this, R.anim.otpless_slide_up_anim);
+        mParentViewGroup = findViewById(R.id.parent_vg);
+        mParentViewGroup.startAnimation(animation);
+
+        if (BuildConfig.DEBUG) {
+            final String url = getSharedPreferences("otpless_mobile_sdk", Context.MODE_PRIVATE).getString(
+                    "custom_temp_url", ""
+            );
+            if (!url.isEmpty()) {
+                firstLoad(url);
+                return;
+            }
+        }
         ApiManager.getInstance().apiConfig(new ApiCallback<JSONObject>() {
             @Override
             public void onSuccess(JSONObject data) {
@@ -97,10 +114,6 @@ public class OtplessWebActivity extends AppCompatActivity implements WebActivity
                 firstLoad("https://otpless.com/mobile/index.html");
             }
         });
-        // add slide up animation
-        final Animation animation = AnimationUtils.loadAnimation(this, R.anim.otpless_slide_up_anim);
-        mParentViewGroup = findViewById(R.id.parent_vg);
-        mParentViewGroup.startAnimation(animation);
     }
 
     private void firstLoad(final String url) {
