@@ -1,8 +1,11 @@
 package com.otpless.views;
 
 
+import android.app.Activity;
+import android.content.Intent;
+
+import androidx.activity.ComponentActivity;
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
 
 import com.otpless.main.OtplessEventData;
 import com.otpless.main.OtplessEventCallback;
@@ -27,17 +30,17 @@ public class OtplessManager {
         return sInstance;
     }
 
-    private final OtplessImpl mOtpImpl;
+    private final OtplessLegacyImpl mOtpImpl;
 
     private OtplessManager() {
-        this.mOtpImpl = new OtplessImpl();
+        this.mOtpImpl = new OtplessLegacyImpl();
     }
 
-    public void init(final FragmentActivity activity) {
+    public void init(final ComponentActivity activity) {
         this.mOtpImpl.initWebLauncher(activity);
     }
 
-    public void start(final FragmentActivity activity, final OtplessUserDetailCallback callback) {
+    public void start(final ComponentActivity activity, final OtplessUserDetailCallback callback) {
         this.init(activity);
         this.start(callback);
     }
@@ -75,6 +78,18 @@ public class OtplessManager {
     public void setFabText(final String text) {
         if (text == null || text.length() == 0) return;
         this.mOtpImpl.setFabText(text);
+    }
+
+    public void startLegacy(final Activity activity, final OtplessUserDetailCallback callback) {
+        this.mOtpImpl.start(activity, callback, null);
+    }
+
+    public void startLegacy(final Activity activity, final OtplessUserDetailCallback callback, final JSONObject jsonObject) {
+        this.mOtpImpl.start(activity, callback, jsonObject);
+    }
+
+    public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
+        this.mOtpImpl.parseData(requestCode, resultCode, data);
     }
 
     public void setEventCallback(final OtplessEventCallback callback) {
