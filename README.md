@@ -1,6 +1,9 @@
 
+<p align="right">
+  <img src="https://github.com/otpless-tech/otpless-android-sdk/blob/main/otpless.svg" height="20"/>
+</p>
 <p align="center">
-  <img src="https://github.com/otpless-tech/otpless-android-sdk/blob/main/otpless.svg" height="80"/>
+  <img src="https://github.com/otpless-tech/otpless-android-sdk/blob/main/otplessfloater.svg" height="200"/>
 </p>
 
 # OTPLESS android SDK
