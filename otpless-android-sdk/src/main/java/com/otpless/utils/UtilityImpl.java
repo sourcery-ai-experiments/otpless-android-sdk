@@ -3,6 +3,7 @@ package com.otpless.utils;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,22 +24,11 @@ import org.json.JSONObject;
 class UtilityImpl {
 
     static void verifyOtplessIntent(final Activity activity, final Intent intent, @NonNull final OtplessUserDetailCallback callback) {
-        if (intent == null) {
-            callback.onOtplessUserDetail(
-                    createError("Intent is null")
-            );
+        if (intent == null || intent.getData() == null || !"otpless".equals(intent.getData().getHost())) {
             removeLoader(activity);
             return;
         }
-        Uri uri = intent.getData();
-        if (uri == null) {
-            callback.onOtplessUserDetail(
-                    createError("Uri is null")
-            );
-            removeLoader(activity);
-            return;
-        }
-        String waId = uri.getQueryParameter("waId");
+        String waId = intent.getData().getQueryParameter("waId");
         if (waId == null || waId.length() == 0) {
             callback.onOtplessUserDetail(
                     createError("Waid is null")
@@ -47,6 +37,7 @@ class UtilityImpl {
             return;
         }
         // check the validity of waId with otpless
+        Log.d("Otpless-api", "waid verification started");
         ApiManager.getInstance().verifyWaId(
                 waId, new ApiCallback<JSONObject>() {
                     @Override
@@ -56,20 +47,24 @@ class UtilityImpl {
                         response.setWaId(waId);
                         String userNumber = Utility.parseUserNumber(data);
                         response.setUserNumber(userNumber);
+                        Log.d("Otpless-api", "waid verification success");
                         if (activity.isFinishing()) return;
                         callback.onOtplessUserDetail(
                                 response
                         );
+                        Log.d("Otpless-api", "waid verification callback sent");
                         removeLoader(activity);
                     }
 
                     @Override
                     public void onError(Exception exception) {
                         exception.printStackTrace();
+                        Log.d("Otpless-api", "waid verification error");
                         if (activity.isFinishing()) return;
                         callback.onOtplessUserDetail(
                                 createError(exception.getMessage())
                         );
+                        Log.d("Otpless-api", "waid verification callback sent");
                         removeLoader(activity);
                     }
                 }
