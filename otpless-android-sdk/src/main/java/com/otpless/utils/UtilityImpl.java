@@ -96,7 +96,6 @@ class UtilityImpl {
                 OtplessManager.initCallback.onOtplessUserDetail(
                         createError("user cancelled")
                 );
-                OtplessManager.initCallback = null;
             }
         });
         contentView.addView(loader);
