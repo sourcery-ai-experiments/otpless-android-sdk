@@ -4,7 +4,6 @@ import android.view.ViewGroup;
 
 import org.json.JSONObject;
 
-public interface WebActivityContract {
+public interface WebActivityContract extends  OtplessViewContract {
     ViewGroup getParentView();
-    JSONObject getExtraParams();
 }

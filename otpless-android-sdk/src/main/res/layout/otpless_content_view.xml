@@ -4,13 +4,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/semi_transparent_gray"
-    tools:context=".main.OtplessWebActivity">
+    android:background="@color/semi_transparent_gray">
+
+    <TextView
+        android:id="@+id/otpless_no_internet_tv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingVertical="5dp"
+        android:layout_marginTop="15dp"
+        android:visibility="gone"
+        android:textSize="14sp"
+        android:background="@drawable/bg_snack_bar_no_internet"
+        android:textColor="@color/white"
+        tools:text="Online mode" />
 
     <FrameLayout
-        android:id="@+id/parent_vg"
+        android:id="@+id/otpless_parent_vg"
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="match_parent"
         android:layout_gravity="center|bottom"
         android:background="@color/otpless_transparent">
 
@@ -22,7 +34,7 @@
     </FrameLayout>
 
     <ProgressBar
-        android:id="@+id/progress_bar"
+        android:id="@+id/otpless_progress_bar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:indeterminateTint="@color/otpless_primary"

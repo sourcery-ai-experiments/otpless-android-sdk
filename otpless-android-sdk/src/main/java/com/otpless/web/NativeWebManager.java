@@ -13,16 +13,15 @@ import android.util.Log;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
 
 import com.otpless.BuildConfig;
+import com.otpless.main.NativeWebListener;
 import com.otpless.main.OtplessEventCode;
 import com.otpless.main.OtplessEventData;
 import com.otpless.main.WebActivityContract;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
 import com.otpless.utils.Utility;
-import com.otpless.views.OtplessManager;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,7 +34,7 @@ public class NativeWebManager implements OtplessWebListener {
     private static final String OtplessPreferenceStore = "otpless_shared_pref_store";
 
     @NonNull
-    private final FragmentActivity mActivity;
+    private final Activity mActivity;
     @NonNull
     private final OtplessWebView mWebView;
     @NonNull
@@ -43,8 +42,10 @@ public class NativeWebManager implements OtplessWebListener {
 
     private boolean mBackSubscription = false;
 
-    public NativeWebManager(@NonNull final FragmentActivity fragmentActivity, @NonNull final OtplessWebView webView, @NonNull WebActivityContract contract) {
-        mActivity = fragmentActivity;
+    private NativeWebListener nativeWebListener;
+
+    public NativeWebManager(@NonNull final Activity activity, @NonNull final OtplessWebView webView, @NonNull WebActivityContract contract) {
+        mActivity = activity;
         mWebView = webView;
         this.contract = contract;
     }
@@ -89,7 +90,9 @@ public class NativeWebManager implements OtplessWebListener {
             if (!deeplinkUrl.getScheme().equals("https")) {
                 data.put("channel", channel);
             }
-            OtplessManager.getInstance().sendOtplessEvent(new OtplessEventData(OtplessEventCode.BUTTON_CLICK, data));
+            if (nativeWebListener != null) {
+                nativeWebListener.onOtplessEvent(new OtplessEventData(OtplessEventCode.BUTTON_CLICK, data));
+            }
             //endregion
         } catch (Exception exception) {
             exception.printStackTrace();
@@ -158,10 +161,9 @@ public class NativeWebManager implements OtplessWebListener {
     // key 11
     @Override
     public void codeVerificationStatus(@NonNull JSONObject json) {
-        final Intent intent = new Intent();
-        intent.putExtra("data", json.toString());
-        mActivity.setResult(Activity.RESULT_OK, intent);
-        mActivity.finish();
+        mActivity.runOnUiThread(() ->
+            contract.onVerificationResult(Activity.RESULT_OK, json)
+        );
         Utility.pushEvent("auth_completed");
     }
 
@@ -201,8 +203,9 @@ public class NativeWebManager implements OtplessWebListener {
     // key 14
     @Override
     public void closeActivity() {
-        mActivity.setResult(Activity.RESULT_CANCELED);
-        mActivity.finish();
+        mActivity.runOnUiThread(() ->
+            contract.onVerificationResult(Activity.RESULT_CANCELED, null)
+        );
         Utility.pushEvent("user_abort");
     }
 
@@ -219,8 +222,7 @@ public class NativeWebManager implements OtplessWebListener {
             eventData.put("additional_event_params", additionalInfo.toString());
             eventData.put("platform", "android");
             eventData.put("caller", "web");
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
+        } catch (JSONException ignore) {
         }
         ApiManager.getInstance().pushEvents(eventData, new ApiCallback<JSONObject>() {
             @Override
@@ -236,4 +238,7 @@ public class NativeWebManager implements OtplessWebListener {
     }
 
 
+    public void setNativeWebListener(NativeWebListener nativeWebListener) {
+        this.nativeWebListener = nativeWebListener;
+    }
 }
