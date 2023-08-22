@@ -103,15 +103,25 @@ class UtilityImpl {
 
     static void removeLoader(final Activity activity) {
         activity.runOnUiThread(() -> {
-            final Window window = activity.getWindow();
-            if (window == null) return;
-            final View decorView = window.getDecorView();
-            if (!(decorView instanceof ViewGroup)) return;
-            final ViewGroup contentView = (ViewGroup) decorView;
-            FrameLayout loader = contentView.findViewWithTag("otpless_loader_view");
-            if (loader != null) {
-                contentView.removeView(loader);
-            }
+            rmLoader(activity);
         });
+    }
+
+    static boolean onBackPress(final Activity activity) {
+        return rmLoader(activity);
+    }
+
+    private static boolean rmLoader(final Activity activity) {
+        final Window window = activity.getWindow();
+        if (window == null) return false;
+        final View decorView = window.getDecorView();
+        if (!(decorView instanceof ViewGroup)) return false;
+        final ViewGroup contentView = (ViewGroup) decorView;
+        FrameLayout loader = contentView.findViewWithTag("otpless_loader_view");
+        if (loader != null) {
+            contentView.removeView(loader);
+            return true;
+        }
+        return false;
     }
 }

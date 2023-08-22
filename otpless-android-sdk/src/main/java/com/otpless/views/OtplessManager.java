@@ -172,7 +172,7 @@ public class OtplessManager {
         return String.format("%s.otpless://otpless", packageName);
     }
 
-    public static void onBackPressed(final Activity activity) {
-        Utility.onBackPressed(activity);
+    public static boolean onBackPressed(final Activity activity) {
+        return Utility.onBackPressed(activity);
     }
 }

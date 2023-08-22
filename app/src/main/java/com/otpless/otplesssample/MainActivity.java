@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         });
         OtplessManager.verify(this, getIntent(), this::onOtplessResult);
 
-        OtplessManager.setRedirectUrl("newschemeinmanifest://newhost");
+//        OtplessManager.setRedirectUrl("newschemeinmanifest://newhost");
     }
 
     @Override
@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        OtplessManager.onBackPressed(this);
+        if (OtplessManager.onBackPressed(this)) return;
         super.onBackPressed();
     }
 
@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         final String waId = userDetail.getWaId();
+        Toast.makeText(this, userDetail.getWaId() + " " + userDetail.getUserNumber(), Toast.LENGTH_LONG).show();
         // todo with api work
     }
 }

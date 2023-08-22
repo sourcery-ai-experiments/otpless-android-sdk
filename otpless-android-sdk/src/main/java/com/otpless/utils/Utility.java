@@ -122,7 +122,7 @@ public class Utility {
         UtilityImpl.removeLoader(activity);
     }
 
-    public static void onBackPressed(final Activity activity) {
-        UtilityImpl.removeLoader(activity);
+    public static boolean onBackPressed(final Activity activity) {
+        return UtilityImpl.onBackPress(activity);
     }
 }
