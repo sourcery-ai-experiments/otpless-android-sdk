@@ -80,7 +80,8 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         loadWebView(null, null);
     }
 
-    private void startOtpless() {
+    @Override
+    public void startOtpless() {
         this.isLoginPageEnabled = false;
         addViewIfNotAdded();
         loadWebView(null, null);
