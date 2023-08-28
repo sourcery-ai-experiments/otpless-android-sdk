@@ -14,6 +14,9 @@ public interface OtplessView {
     /// method to start otpless with with json parameters
     void startOtpless(final JSONObject params, final OtplessUserDetailCallback callback);
 
+    /// methods to start otpless
+    void startOtpless();
+
     /// explicitly setting the callback
     void setCallback(final OtplessUserDetailCallback callback, final JSONObject extra);
 
