@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.browser.customtabs.CustomTabsIntent;
 
 import com.otpless.BuildConfig;
 import com.otpless.main.NativeWebListener;
@@ -77,8 +78,12 @@ public class NativeWebManager implements OtplessWebListener {
     public void openDeeplink(@NonNull final String deeplink) {
         try {
             final Uri deeplinkUrl = Uri.parse(deeplink);
-            final Intent whatsappIntent = new Intent(Intent.ACTION_VIEW, deeplinkUrl);
-            mActivity.startActivity(whatsappIntent);
+            if ("https".equals(deeplinkUrl.getScheme())) {
+                Utility.openChromeCustomTab(mActivity, deeplinkUrl);
+            } else {
+                final Intent whatsappIntent = new Intent(Intent.ACTION_VIEW, deeplinkUrl);
+                mActivity.startActivity(whatsappIntent);
+            }
             //region ==== sending the event ====
             final String channel = deeplinkUrl.getScheme() + "://" + deeplinkUrl.getHost();
 

@@ -1,5 +1,6 @@
 package com.otpless.utils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -12,6 +13,7 @@ import android.util.Base64;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.browser.customtabs.CustomTabsIntent;
 
 import com.otpless.BuildConfig;
 import com.otpless.network.ApiCallback;
@@ -213,5 +215,12 @@ public class Utility {
         } catch (PackageManager.NameNotFoundException | UnsupportedOperationException exception) {
             return "";
         }
+    }
+
+    public static void openChromeCustomTab(@NonNull final Activity activity, @NonNull final Uri uri) {
+        final CustomTabsIntent tabIntent = new CustomTabsIntent.Builder()
+                .build();
+
+        tabIntent.launchUrl(activity, uri);
     }
 }
