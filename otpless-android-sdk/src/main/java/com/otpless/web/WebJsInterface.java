@@ -103,7 +103,9 @@ public class WebJsInterface {
                 case 7:
                     final String deeplink = getString(jsonObject, "deeplink");
                     if (deeplink.length() == 0) return;
-                    this.mListener.openDeeplink(deeplink);
+                    // checkout for extras
+                    final JSONObject extra = getJson(jsonObject, "extra");
+                    this.mListener.openDeeplink(deeplink, extra);
                     break;
                 // get app info
                 case 8:
