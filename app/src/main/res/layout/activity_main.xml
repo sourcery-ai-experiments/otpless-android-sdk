@@ -43,5 +43,15 @@
         app:layout_constraintStart_toStartOf="@+id/otpless_btn"
         app:layout_constraintTop_toBottomOf="@+id/otpless_btn" />
 
+    <Button
+        android:id="@+id/start_deeplink_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start Deeplink Testing"
+        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="@+id/sign_in_complete"
+        app:layout_constraintStart_toStartOf="@+id/sign_in_complete"
+        app:layout_constraintTop_toBottomOf="@+id/sign_in_complete" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

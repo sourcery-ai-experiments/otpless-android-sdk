@@ -1,6 +1,7 @@
 package com.otpless.otplesssample;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -9,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.otpless.dto.OtplessResponse;
 import com.otpless.main.OtplessManager;
 import com.otpless.main.OtplessView;
+import com.otpless.utils.Utility;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -31,7 +33,15 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.sign_in_complete).setOnClickListener(v -> {
             otplessView.onSignInCompleted();
         });
+        findViewById(R.id.start_deeplink_btn).setOnClickListener(v -> {
+//            startDeeplinkTest();
+        });
+    }
 
+    private void startDeeplinkTest() {
+        final String deeplink = "https://digvijayanubhav.authlink.me/0GbCw2ogaMst";
+        final Uri uri = Uri.parse(deeplink);
+        Utility.openChromeCustomTab(this, uri);
     }
 
     @Override

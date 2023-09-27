@@ -250,11 +250,9 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         if (uri == null) return false;
         if (!"otpless".equals(uri.getHost())) return false;
         // check if passed deeplink is having uri query param then open that is chrome custom tab
-        final String otplessCode = uri.getQueryParameter("otpless_code");
+        final String otplessCode = uri.getQueryParameter("uri");
         if (Utility.isValid(otplessCode)) {
-            final Uri.Builder builder = Uri.parse("https://otpless.com/auth/index.html").buildUpon();
-            builder.appendQueryParameter("code", otplessCode);
-            Utility.openChromeCustomTab(activity, builder.build());
+            Utility.openChromeCustomTab(activity, Uri.parse(otplessCode));
             return true;
         }
         // check if web view is already loaded or not if webview is loaded then reload the url
