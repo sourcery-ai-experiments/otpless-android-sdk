@@ -3,6 +3,8 @@ package com.otpless.otplesssample;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,8 +36,28 @@ public class MainActivity extends AppCompatActivity {
             otplessView.onSignInCompleted();
         });
         findViewById(R.id.start_deeplink_btn).setOnClickListener(v -> {
-//            startDeeplinkTest();
+            startDeeplinkTest();
         });
+        findViewById(R.id.start_fragment_test).setOnClickListener(v -> {
+            startFragmentTesting();
+        });
+        findViewById(R.id.start_double_screen_test).setOnClickListener(v -> {
+            startDoubleScreenTest();
+        });
+        otplessView.verifyIntent(getIntent());
+    }
+
+    private void startFragmentTesting() {
+        final Intent intent = new Intent(this, HomeActivity.class);
+        startActivity(intent);
+    }
+
+    private void startDoubleScreenTest() {
+        otplessView.startOtpless();
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            final Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        }, 3000);
     }
 
     private void startDeeplinkTest() {

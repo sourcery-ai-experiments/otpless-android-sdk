@@ -7,5 +7,7 @@
     <color name="otpless_gray">#D3D3D3</color>
     <color name="semi_transparent_gray">#CCCCCCCC</color>
 
+    <color name="turquoise">#00FfFF</color>
+
     <color name="otpless_transparent">#00000000</color>
 </resources>

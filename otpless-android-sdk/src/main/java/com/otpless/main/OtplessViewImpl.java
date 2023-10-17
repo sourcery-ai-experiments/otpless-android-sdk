@@ -59,8 +59,14 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     private final Queue<ViewGroup> helpQueue = new PriorityQueue<>();
 
+    OtplessViewRemovalNotifier viewRemovalNotifier = null;
+
     OtplessViewImpl(final Activity activity) {
         this.activity = activity;
+    }
+
+    Activity getActivity() {
+        return this.activity;
     }
 
     @Override
@@ -320,6 +326,9 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         View container = parent.findViewWithTag(VIEW_TAG_NAME);
         if (container != null) {
             parent.removeView(container);
+            if (viewRemovalNotifier != null) {
+                viewRemovalNotifier.onOtplessViewRemoved(this);
+            }
             OtplessNetworkManager.getInstance().removeListener(activity, this);
             wContainer.clear();
         }
