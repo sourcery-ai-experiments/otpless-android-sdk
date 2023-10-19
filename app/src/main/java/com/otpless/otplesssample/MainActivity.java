@@ -1,10 +1,7 @@
 package com.otpless.otplesssample;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,7 +9,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.otpless.dto.OtplessResponse;
 import com.otpless.main.OtplessManager;
 import com.otpless.main.OtplessView;
-import com.otpless.utils.Utility;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -35,35 +31,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.sign_in_complete).setOnClickListener(v -> {
             otplessView.onSignInCompleted();
         });
-        findViewById(R.id.start_deeplink_btn).setOnClickListener(v -> {
-            startDeeplinkTest();
-        });
-        findViewById(R.id.start_fragment_test).setOnClickListener(v -> {
-            startFragmentTesting();
-        });
-        findViewById(R.id.start_double_screen_test).setOnClickListener(v -> {
-            startDoubleScreenTest();
-        });
         otplessView.verifyIntent(getIntent());
-    }
-
-    private void startFragmentTesting() {
-        final Intent intent = new Intent(this, HomeActivity.class);
-        startActivity(intent);
-    }
-
-    private void startDoubleScreenTest() {
-        otplessView.startOtpless();
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-            final Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-        }, 3000);
-    }
-
-    private void startDeeplinkTest() {
-        final String deeplink = "https://digvijayanubhav.authlink.me/0GbCw2ogaMst";
-        final Uri uri = Uri.parse(deeplink);
-        Utility.openChromeCustomTab(this, uri);
     }
 
     @Override
