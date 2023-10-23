@@ -35,7 +35,8 @@ public class OtplessManager {
         if (!isViewRemovalNotifierEnabled) return;
         // remove all view
         for (final OtplessViewImpl view : providedViewSet) {
-            if (view == who) continue;
+            // no changes in current activity and when activity is getting finished
+            if (view == who || view.getActivity().isFinishing()) continue;
             view.closeView();
         }
     };

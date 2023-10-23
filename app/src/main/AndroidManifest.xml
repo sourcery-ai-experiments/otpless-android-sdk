@@ -11,6 +11,7 @@
         android:theme="@style/Theme.OtpLessSample">
         <activity
             android:name="com.otpless.otplesssample.MainActivity"
+            android:launchMode="singleTop"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
