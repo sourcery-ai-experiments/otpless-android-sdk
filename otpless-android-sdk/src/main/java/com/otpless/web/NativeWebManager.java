@@ -50,6 +50,7 @@ public class NativeWebManager implements OtplessWebListener {
         mActivity = activity;
         mWebView = webView;
         this.contract = contract;
+        Utility.addContextInfo(mActivity);
     }
 
     // key 1
@@ -161,6 +162,13 @@ public class NativeWebManager implements OtplessWebListener {
         map.put("deviceId", androidId);
         map.put("hasWhatsapp", String.valueOf(Utility.isWhatsAppInstalled(mActivity)));
         map.put("appSignature", Utility.getAppSignature(mActivity));
+        //adding other chatting app
+        final PackageManager packageManager = applicationContext.getPackageManager();
+        map.put("hasTelegram", String.valueOf(Utility.isAppInstalled(packageManager, Utility.TELEGRAM_APP_PACKAGE_NAME)));
+        //line check
+        map.put("hasLine", String.valueOf(Utility.isAppInstalled(packageManager, Utility.LINE_APP_PACKAGE_NAME)));
+        //miChat check
+        map.put("hasMiChat", String.valueOf(Utility.isAppInstalled(packageManager, Utility.MI_CHAT_APP_PACKAGE_NAME)));
         return map;
     }
 

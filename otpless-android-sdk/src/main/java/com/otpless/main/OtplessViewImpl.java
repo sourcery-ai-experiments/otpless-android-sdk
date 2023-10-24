@@ -2,6 +2,7 @@ package com.otpless.main;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.util.Log;
 import android.util.TypedValue;
@@ -185,6 +186,14 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         urlToLoad.appendQueryParameter("package", packageName);
         urlToLoad.appendQueryParameter("hasWhatsapp", String.valueOf(Utility.isWhatsAppInstalled(activity)));
         urlToLoad.appendQueryParameter("hasOtplessApp", String.valueOf(Utility.isOtplessAppInstalled(activity)));
+        //check other chatting apps
+        final PackageManager pm = activity.getPackageManager();
+        //telegram check
+        urlToLoad.appendQueryParameter("hasTelegram", String.valueOf(Utility.isAppInstalled(pm, Utility.TELEGRAM_APP_PACKAGE_NAME)));
+        //line check
+        urlToLoad.appendQueryParameter("hasLine", String.valueOf(Utility.isAppInstalled(pm, Utility.LINE_APP_PACKAGE_NAME)));
+        //miChat check
+        urlToLoad.appendQueryParameter("hasMiChat", String.valueOf(Utility.isAppInstalled(pm, Utility.MI_CHAT_APP_PACKAGE_NAME)));
         if (isLoginPageEnabled) {
             urlToLoad.appendQueryParameter("lp", String.valueOf(true));
         }
