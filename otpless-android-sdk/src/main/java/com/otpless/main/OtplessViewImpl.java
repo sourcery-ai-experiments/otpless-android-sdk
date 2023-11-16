@@ -58,6 +58,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private static final int ButtonHeight = 40;
 
     private boolean isLoginPageEnabled = false;
+    private boolean backSubscription = false;
 
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
 
@@ -198,6 +199,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
             urlToLoad.appendQueryParameter("lp", String.valueOf(true));
         }
         urlToLoad.appendQueryParameter("login_uri", loginUrl);
+        urlToLoad.appendQueryParameter("nbbs", String.valueOf(this.backSubscription));
         return urlToLoad.build().toString();
     }
 
@@ -275,6 +277,14 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         if (manager == null) return false;
         final OtplessWebView webView = wContainer.get().getWebView();
         if (webView == null) return false;
+        if (this.eventCallback != null && this.backSubscription) {
+            if (manager.getBackSubscription()) {
+                webView.callWebJs("onHardBackPressed");
+            }
+            final OtplessEventData eventData = new OtplessEventData(OtplessEventCode.BACK_PRESSED, null);
+            this.eventCallback.onOtplessEvent(eventData);
+            return true;
+        }
         if (manager.getBackSubscription()) {
             // back-press has been consumed
             webView.callWebJs("onHardBackPressed");
@@ -447,6 +457,12 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     @Override
     public void setEventCallback(final OtplessEventCallback callback) {
         this.eventCallback = callback;
+    }
+
+    @Override
+    public void setEventCallback(OtplessEventCallback callback, boolean backSubscription) {
+        this.eventCallback = callback;
+        this.backSubscription = backSubscription;
     }
 
     @Override
