@@ -134,6 +134,14 @@ public class WebJsInterface {
                     if (eventData == null) return;
                     this.mListener.pushEvent(eventData);
                     break;
+                case 16:
+                    final Boolean otpR = getBoolean(jsonObject, "otpread");
+                    boolean otpRead = false;
+                    if (otpR != null) {
+                        otpRead = otpR;
+                    }
+                    this.mListener.otpAutoRead(otpRead);
+                    break;
             }
         } catch (JSONException e) {
             e.printStackTrace();

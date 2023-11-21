@@ -30,4 +30,7 @@ public interface OtplessWebListener extends WebLoaderCallback {
 
     //key 15
     void pushEvent(final JSONObject eventData);
+
+    //key 16
+    void otpAutoRead(final boolean enable);
 }

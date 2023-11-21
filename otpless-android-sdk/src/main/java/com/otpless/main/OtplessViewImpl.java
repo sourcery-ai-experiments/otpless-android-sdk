@@ -23,6 +23,7 @@ import com.otpless.network.NetworkStatusData;
 import com.otpless.network.ONetworkStatus;
 import com.otpless.network.OnConnectionChangeListener;
 import com.otpless.network.OtplessNetworkManager;
+import com.otpless.utils.OtpReaderManager;
 import com.otpless.utils.Utility;
 import com.otpless.views.FabButtonAlignment;
 import com.otpless.views.OtplessContainerView;
@@ -377,6 +378,8 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
             OtplessNetworkManager.getInstance().removeListener(activity, this);
             wContainer.clear();
         }
+        // unregister the otp autoreader
+        OtpReaderManager.getInstance().stopOtpReader();
     }
 
     private ViewGroup findParentView() {

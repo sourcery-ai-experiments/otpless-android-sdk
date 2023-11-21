@@ -23,6 +23,9 @@ import com.otpless.main.OtplessEventData;
 import com.otpless.main.WebActivityContract;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
+import com.otpless.utils.OtpReaderManager;
+import com.otpless.utils.OtpResult;
+import com.otpless.utils.OtpResultListener;
 import com.otpless.utils.Utility;
 
 import org.json.JSONException;
@@ -254,5 +257,23 @@ public class NativeWebManager implements OtplessWebListener {
 
     public void setNativeWebListener(NativeWebListener nativeWebListener) {
         this.nativeWebListener = nativeWebListener;
+    }
+
+    // key 16
+    @Override
+    public void otpAutoRead(final boolean enable) {
+        if (enable) {
+            OtpReaderManager.getInstance().startOtpReader(
+                    this.mActivity, otpResult -> {
+                        if (otpResult.isSuccess()) {
+                            mWebView.callWebJs("onOtpReadSuccess", otpResult.getOtp());
+                        } else {
+                            mWebView.callWebJs("onOtpReadError", otpResult.getErrorMessage());
+                        }
+                    }
+            );
+        } else {
+            OtpReaderManager.getInstance().stopOtpReader();
+        }
     }
 }
