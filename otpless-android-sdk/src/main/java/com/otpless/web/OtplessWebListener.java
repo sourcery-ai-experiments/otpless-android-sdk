@@ -33,4 +33,7 @@ public interface OtplessWebListener extends WebLoaderCallback {
 
     //key 16
     void otpAutoRead(final boolean enable);
+
+    //key 17
+    void phoneNumberSelection();
 }

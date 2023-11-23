@@ -1,7 +1,10 @@
 package com.otpless.utils;
 
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -15,7 +18,13 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.browser.customtabs.CustomTabsIntent;
 
+import com.google.android.gms.auth.api.credentials.Credential;
+import com.google.android.gms.auth.api.credentials.Credentials;
+import com.google.android.gms.auth.api.credentials.CredentialsClient;
+import com.google.android.gms.auth.api.credentials.CredentialsOptions;
+import com.google.android.gms.auth.api.credentials.HintRequest;
 import com.otpless.BuildConfig;
+import com.otpless.dto.Tuple;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
 
@@ -26,7 +35,6 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,6 +46,7 @@ public class Utility {
     public static final String TELEGRAM_APP_PACKAGE_NAME = "org.telegram.messenger";
     public static final String MI_CHAT_APP_PACKAGE_NAME = "com.michatapp.im";
     public static final String LINE_APP_PACKAGE_NAME = "jp.naver.line.android";
+    public static final int PHONE_SELECTION_REQUEST_CODE = 99876;
 
     public static void addContextInfo(final Context context) {
         final Context applicationContext = context.getApplicationContext();
@@ -166,7 +175,7 @@ public class Utility {
 
     public static boolean isOtplessAppInstalled(final Context context) {
         final PackageManager manager = context.getPackageManager();
-        return  isAppInstalled(manager, "com.otpless.app");
+        return isAppInstalled(manager, "com.otpless.app");
     }
 
     @NonNull
@@ -233,5 +242,32 @@ public class Utility {
                 .build();
 
         tabIntent.launchUrl(activity, uri);
+    }
+
+    public static Tuple<Boolean, IntentSender.SendIntentException> openPhoneNumberSelection(final Activity activity) {
+        final HintRequest request = new HintRequest.Builder()
+                .setPhoneNumberIdentifierSupported(true)
+                .build();
+        final CredentialsOptions options = new CredentialsOptions.Builder()
+                .forceEnableSaveDialog()
+                .build();
+        final CredentialsClient client = Credentials.getClient(activity, options);
+        final PendingIntent intent = client.getHintPickerIntent(request);
+        try {
+            activity.startIntentSenderForResult(intent.getIntentSender(), PHONE_SELECTION_REQUEST_CODE, null, 0, 0, 0);
+            return new Tuple<>(true, null);
+        } catch (IntentSender.SendIntentException exception) {
+            return new Tuple<>(false, exception);
+        }
+    }
+
+    public static Tuple<String, Exception> parsePhoneNumberSelectionIntent(@NonNull final Intent intent) {
+        final Object obj = intent.getParcelableExtra(Credential.EXTRA_KEY);
+        if (obj instanceof Credential) {
+            final Credential credential = (Credential) obj;
+            final String phoneNumber = credential.getId();
+            return new Tuple<>(phoneNumber, null);
+        }
+        return new Tuple<>(null, new Exception("Parsing Error: No credential data provided in intent"));
     }
 }

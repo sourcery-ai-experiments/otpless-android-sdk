@@ -3,6 +3,7 @@ package com.otpless.web;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -14,9 +15,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.browser.customtabs.CustomTabsIntent;
 
 import com.otpless.BuildConfig;
+import com.otpless.dto.Tuple;
 import com.otpless.main.NativeWebListener;
 import com.otpless.main.OtplessEventCode;
 import com.otpless.main.OtplessEventData;
@@ -24,8 +25,6 @@ import com.otpless.main.WebActivityContract;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
 import com.otpless.utils.OtpReaderManager;
-import com.otpless.utils.OtpResult;
-import com.otpless.utils.OtpResultListener;
 import com.otpless.utils.Utility;
 
 import org.json.JSONException;
@@ -274,6 +273,25 @@ public class NativeWebManager implements OtplessWebListener {
             );
         } else {
             OtpReaderManager.getInstance().stopOtpReader();
+        }
+    }
+
+    // key 17
+    @Override
+    public void phoneNumberSelection() {
+        mActivity.runOnUiThread(() -> {
+            final Tuple<Boolean, IntentSender.SendIntentException> result = Utility.openPhoneNumberSelection(mActivity);
+            if (!result.getFirst()) {
+                mWebView.callWebJs("onPhoneNumberSelectionError", result.getSecond().getMessage());
+            }
+        });
+    }
+
+    public void onPhoneNumberSelectionResult(final Tuple<String, Exception> data) {
+        if (data.getSecond() == null) {
+            mWebView.callWebJs("onPhoneNumberSelectionSuccess", data.getFirst());
+        } else {
+            mWebView.callWebJs("onPhoneNumberSelectionError", data.getSecond());
         }
     }
 }

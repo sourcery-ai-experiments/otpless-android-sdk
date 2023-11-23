@@ -142,6 +142,9 @@ public class WebJsInterface {
                     }
                     this.mListener.otpAutoRead(otpRead);
                     break;
+                case 17:
+                    this.mListener.phoneNumberSelection();
+                    break;
             }
         } catch (JSONException e) {
             e.printStackTrace();

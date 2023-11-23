@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import com.otpless.R;
 import com.otpless.dto.OtplessRequest;
 import com.otpless.dto.OtplessResponse;
+import com.otpless.dto.Tuple;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
 import com.otpless.network.NetworkStatusData;
@@ -612,5 +613,14 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         this.isLoginPageEnabled = true;
         addViewIfNotAdded();
         loadWebView(null, null);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, final Intent intent) {
+        final OtplessContainerView containerView = wContainer.get();
+        if (containerView == null || containerView.getWebManager() == null || containerView.getWebView() == null) return;
+        if (requestCode != Utility.PHONE_SELECTION_REQUEST_CODE || resultCode != Activity.RESULT_OK || intent == null) return;
+        final Tuple<String, Exception> parseData = Utility.parsePhoneNumberSelectionIntent(intent);
+        containerView.getWebManager().onPhoneNumberSelectionResult(parseData);
     }
 }

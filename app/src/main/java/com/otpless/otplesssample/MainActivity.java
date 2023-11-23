@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.widget.CheckBox;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.otpless.dto.OtplessResponse;
@@ -70,5 +71,11 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (otplessView.onBackPressed()) return;
         super.onBackPressed();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        otplessView.onActivityResult(requestCode, resultCode, data);
     }
 }
