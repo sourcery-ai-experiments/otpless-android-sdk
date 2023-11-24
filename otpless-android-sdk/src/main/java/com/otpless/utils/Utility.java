@@ -24,6 +24,7 @@ import com.google.android.gms.auth.api.credentials.CredentialsClient;
 import com.google.android.gms.auth.api.credentials.CredentialsOptions;
 import com.google.android.gms.auth.api.credentials.HintRequest;
 import com.otpless.BuildConfig;
+import com.otpless.dto.Triple;
 import com.otpless.dto.Tuple;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
@@ -35,7 +36,9 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Utility {
@@ -43,9 +46,25 @@ public class Utility {
     @NonNull
     private static final HashMap<String, String> mAdditionalAppInfo = new HashMap<>();
 
-    public static final String TELEGRAM_APP_PACKAGE_NAME = "org.telegram.messenger";
-    public static final String MI_CHAT_APP_PACKAGE_NAME = "com.michatapp.im";
-    public static final String LINE_APP_PACKAGE_NAME = "jp.naver.line.android";
+    static final String TELEGRAM_APP_PACKAGE_NAME = "org.telegram.messenger";
+    static final String MI_CHAT_APP_PACKAGE_NAME = "com.michatapp.im";
+    static final String LINE_APP_PACKAGE_NAME = "jp.naver.line.android";
+    static final String DISCORD_PACKAGE_NAME = "com.discord";
+    static final String SLACK_PACKAGE_NAME = "com.Slack";
+    static final String VIBER_PACKAGE_NAME = "com.viber.voip";
+    static final String SIGNAL_PACKAGE_NAME = "org.thoughtcrime.securesms";
+    static final String BOTIM_PACKAGE_NAME = "im.thebot.messenger";
+
+    private static final List<Tuple<String, String>> messagingAppPackageList = Arrays.asList(
+            new Tuple<>("Telegram", TELEGRAM_APP_PACKAGE_NAME),
+            new Tuple<>("MiChat", MI_CHAT_APP_PACKAGE_NAME),
+            new Tuple<>("Line", LINE_APP_PACKAGE_NAME),
+            new Tuple<>("Discord", DISCORD_PACKAGE_NAME),
+            new Tuple<>("Slack", SLACK_PACKAGE_NAME),
+            new Tuple<>("Viber", VIBER_PACKAGE_NAME),
+            new Tuple<>("Signal", SIGNAL_PACKAGE_NAME),
+            new Tuple<>("Botim", BOTIM_PACKAGE_NAME)
+    );
     public static final int PHONE_SELECTION_REQUEST_CODE = 99876;
 
     public static void addContextInfo(final Context context) {
@@ -73,11 +92,10 @@ public class Utility {
         mAdditionalAppInfo.put("appSignature", getAppSignature(context));
         // adding other chatting apps install status
         final PackageManager packageManager = applicationContext.getPackageManager();
-        mAdditionalAppInfo.put("hasTelegram", String.valueOf(Utility.isAppInstalled(packageManager, Utility.TELEGRAM_APP_PACKAGE_NAME)));
-        //line check
-        mAdditionalAppInfo.put("hasLine", String.valueOf(Utility.isAppInstalled(packageManager, Utility.LINE_APP_PACKAGE_NAME)));
-        //miChat check
-        mAdditionalAppInfo.put("hasMiChat", String.valueOf(Utility.isAppInstalled(packageManager, Utility.MI_CHAT_APP_PACKAGE_NAME)));
+        final List<Triple<String, String, Boolean>> messagingApps = Utility.getMessagingInstalledAppStatus(packageManager);
+        for (final Triple<String, String, Boolean> installStatus : messagingApps) {
+            mAdditionalAppInfo.put("has" + installStatus.getFirst(), String.valueOf(installStatus.getThird()));
+        }
     }
 
     public static boolean isAppInstalled(final PackageManager packageManager, final String packageName) {
@@ -269,5 +287,13 @@ public class Utility {
             return new Tuple<>(phoneNumber, null);
         }
         return new Tuple<>(null, new Exception("Parsing Error: No credential data provided in intent"));
+    }
+
+    public static List<Triple<String, String, Boolean>> getMessagingInstalledAppStatus(@NonNull final PackageManager packageManager) {
+        final ArrayList<Triple<String, String, Boolean>> result = new ArrayList<>();
+        for (Tuple<String, String> each : messagingAppPackageList) {
+            result.add(new Triple<>(each.getFirst(), each.getSecond(), Utility.isAppInstalled(packageManager, each.getSecond())));
+        }
+        return result;
     }
 }

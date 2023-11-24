@@ -13,5 +13,10 @@
         <package android:name="org.telegram.messenger"/>
         <package android:name="jp.naver.line.android"/>
         <package android:name="com.michatapp.im"/>
+        <package android:name="com.discord"/>
+        <package android:name="com.Slack"/>
+        <package android:name="com.viber.voip"/>
+        <package android:name="org.thoughtcrime.securesms"/>
+        <package android:name="im.thebot.messenger"/>
     </queries>
 </manifest>

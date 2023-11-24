@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import com.otpless.R;
 import com.otpless.dto.OtplessRequest;
 import com.otpless.dto.OtplessResponse;
+import com.otpless.dto.Triple;
 import com.otpless.dto.Tuple;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
@@ -38,6 +39,7 @@ import org.json.JSONObject;
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConnectionChangeListener, NativeWebListener {
@@ -60,7 +62,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private static final int ButtonHeight = 40;
 
     private boolean isLoginPageEnabled = false;
-    private boolean backSubscription = false;
+    private boolean backSubscription = true;
 
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
 
@@ -191,12 +193,10 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         urlToLoad.appendQueryParameter("hasOtplessApp", String.valueOf(Utility.isOtplessAppInstalled(activity)));
         //check other chatting apps
         final PackageManager pm = activity.getPackageManager();
-        //telegram check
-        urlToLoad.appendQueryParameter("hasTelegram", String.valueOf(Utility.isAppInstalled(pm, Utility.TELEGRAM_APP_PACKAGE_NAME)));
-        //line check
-        urlToLoad.appendQueryParameter("hasLine", String.valueOf(Utility.isAppInstalled(pm, Utility.LINE_APP_PACKAGE_NAME)));
-        //miChat check
-        urlToLoad.appendQueryParameter("hasMiChat", String.valueOf(Utility.isAppInstalled(pm, Utility.MI_CHAT_APP_PACKAGE_NAME)));
+        final List<Triple<String, String, Boolean>> messagingApps = Utility.getMessagingInstalledAppStatus(pm);
+        for (final Triple<String, String, Boolean> installStatus: messagingApps) {
+            urlToLoad.appendQueryParameter("has" + installStatus.getFirst(), String.valueOf(installStatus.getThird()));
+        }
         if (isLoginPageEnabled) {
             urlToLoad.appendQueryParameter("lp", String.valueOf(true));
         }
@@ -279,7 +279,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         if (manager == null) return false;
         final OtplessWebView webView = wContainer.get().getWebView();
         if (webView == null) return false;
-        if (this.eventCallback != null && this.backSubscription) {
+        if (this.eventCallback != null && this.backSubscription && this.isLoginPageEnabled) {
             if (manager.getBackSubscription()) {
                 webView.callWebJs("onHardBackPressed");
             }
@@ -305,7 +305,17 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         // check if passed deeplink is having uri query param then open that is chrome custom tab
         final String otplessCode = uri.getQueryParameter("uri");
         if (Utility.isValid(otplessCode)) {
-            Utility.openChromeCustomTab(activity, Uri.parse(otplessCode));
+            // checkout the host for provided otpless uri
+            Uri queryUri;
+            try {
+                queryUri = Uri.parse(otplessCode);
+                if (queryUri.getHost() == null || !queryUri.getHost().contains("otpless")) {
+                    return false;
+                }
+            } catch (Exception ignore) {
+                return false;
+            }
+            Utility.openChromeCustomTab(activity, queryUri);
             return true;
         }
         // check if web view is already loaded or not if webview is loaded then reload the url
@@ -464,8 +474,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     }
 
     @Override
-    public void setEventCallback(OtplessEventCallback callback, boolean backSubscription) {
-        this.eventCallback = callback;
+    public void setBackBackButtonSubscription(final boolean backSubscription) {
         this.backSubscription = backSubscription;
     }
 

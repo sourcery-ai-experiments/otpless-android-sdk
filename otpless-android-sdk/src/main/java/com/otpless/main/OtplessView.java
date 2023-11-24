@@ -49,7 +49,7 @@ public interface OtplessView {
     /// to receive the events in apps
     void setEventCallback(final OtplessEventCallback callback);
 
-    default void setEventCallback(final OtplessEventCallback callback, boolean backSubscription) {}
+    void setBackBackButtonSubscription(final boolean backSubscription);
 
     /// to configure the visibility of otpless fab button
     void showOtplessFab(boolean isToShow);

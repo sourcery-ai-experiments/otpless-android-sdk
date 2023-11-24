@@ -36,19 +36,6 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.sign_in_complete).setOnClickListener(v -> {
             otplessView.onSignInCompleted();
         });
-        CheckBox checkBox = findViewById(R.id.nbbs_checkbox);
-        final OtplessEventCallback callback = new OtplessEventCallback() {
-            @Override
-            public void onOtplessEvent(OtplessEventData event) {
-                if (event.getEventCode() == OtplessEventCode.BACK_PRESSED) {
-                    Toast.makeText(MainActivity.this, "Closing view from event callback", Toast.LENGTH_LONG).show();
-                    otplessView.closeView();
-                }
-            }
-        };
-        checkBox.setOnCheckedChangeListener((v, b) ->
-            otplessView.setEventCallback(callback, b)
-        );
         otplessView.verifyIntent(getIntent());
     }
 

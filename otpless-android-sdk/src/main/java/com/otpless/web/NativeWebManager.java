@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.otpless.BuildConfig;
+import com.otpless.dto.Triple;
 import com.otpless.dto.Tuple;
 import com.otpless.main.NativeWebListener;
 import com.otpless.main.OtplessEventCode;
@@ -31,6 +32,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class NativeWebManager implements OtplessWebListener {
@@ -166,11 +168,10 @@ public class NativeWebManager implements OtplessWebListener {
         map.put("appSignature", Utility.getAppSignature(mActivity));
         //adding other chatting app
         final PackageManager packageManager = applicationContext.getPackageManager();
-        map.put("hasTelegram", String.valueOf(Utility.isAppInstalled(packageManager, Utility.TELEGRAM_APP_PACKAGE_NAME)));
-        //line check
-        map.put("hasLine", String.valueOf(Utility.isAppInstalled(packageManager, Utility.LINE_APP_PACKAGE_NAME)));
-        //miChat check
-        map.put("hasMiChat", String.valueOf(Utility.isAppInstalled(packageManager, Utility.MI_CHAT_APP_PACKAGE_NAME)));
+        final List<Triple<String, String, Boolean>> messagingApps = Utility.getMessagingInstalledAppStatus(packageManager);
+        for (final Triple<String, String, Boolean> installStatus : messagingApps) {
+            map.put("has" + installStatus.getFirst(), String.valueOf(installStatus.getThird()));
+        }
         return map;
     }
 

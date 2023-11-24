@@ -43,14 +43,4 @@
         app:layout_constraintStart_toStartOf="@+id/otpless_btn"
         app:layout_constraintTop_toBottomOf="@+id/otpless_btn" />
 
-    <CheckBox
-        android:id="@+id/nbbs_checkbox"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Back Button Subscription"
-        app:layout_constraintEnd_toEndOf="@+id/sign_in_complete"
-        app:layout_constraintStart_toStartOf="@+id/sign_in_complete"
-        app:layout_constraintTop_toBottomOf="@+id/sign_in_complete" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
