@@ -5,34 +5,24 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.otpless.BuildConfig;
-import com.otpless.R;
 
 public class OtplessWebView extends WebView {
 
     public static final String JAVASCRIPT_OBJ = "javascript_obj";
 
     private LoadingStatus mLoadingState = LoadingStatus.InProgress;
-    private String mEnqueuedWaid = null;
     private String mLoadingUrl = null;
-
-    private TextView mErrorTv;
-    private View mErrorLayout;
-    private Button mRetryButton;
 
     @Nullable
     public PageLoadStatusCallback pageLoadStatusCallback;
@@ -73,19 +63,6 @@ public class OtplessWebView extends WebView {
         getSettings().setLoadsImagesAutomatically(true);
         getSettings().setUserAgentString(String.format("%s otplesssdk", getSettings().getUserAgentString()));
         setWebViewClient(new OtplessWebClient());
-
-        // add error view also
-        mErrorLayout = LayoutInflater.from(getContext()).inflate(R.layout.otpless_web_error_view, this, false);
-        mRetryButton = mErrorLayout.findViewById(R.id.retry_btn);
-        mRetryButton.setOnClickListener(v -> {
-            mErrorLayout.setVisibility(View.GONE);
-            reload();
-        });
-        // Add the custom layout to the WebView as an error view
-        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        addView(mErrorLayout, params);
-        mErrorTv = mErrorLayout.findViewById(R.id.message_tv);
-        mErrorLayout.setVisibility(View.GONE);
     }
 
     // for oreo and samsung and oppo devices autofill is suppressed
@@ -112,21 +89,13 @@ public class OtplessWebView extends WebView {
         } else {
             loadUrl(jsStr);
         }
-        pushEnqueuedWaid();
     }
 
     public void loadWebUrl(String url) {
         if (url == null) return;
         mLoadingUrl = url;
-        changeLoadingStatus(LoadingStatus.InProgress);
+        changeLoadingStatus(LoadingStatus.InProgress, null);
         loadUrl(url);
-    }
-
-    public void reload() {
-        if (mLoadingUrl != null && mLoadingState != LoadingStatus.InProgress) {
-            changeLoadingStatus(LoadingStatus.InProgress);
-            loadUrl(mLoadingUrl);
-        }
     }
 
     public String getLoadedUrl() {
@@ -166,17 +135,13 @@ public class OtplessWebView extends WebView {
         addJavascriptInterface(webJsInterface, JAVASCRIPT_OBJ);
     }
 
-    public void detachNativeWebManager() {
-        removeJavascriptInterface(JAVASCRIPT_OBJ);
-    }
-
     private class OtplessWebClient extends WebViewClient {
 
         @Override
         public void onPageStarted(WebView view, String url, Bitmap favicon) {
             super.onPageStarted(view, url, favicon);
             if ("about:blank".equals(url)) return;
-            changeLoadingStatus(LoadingStatus.Started);
+            changeLoadingStatus(LoadingStatus.Started, null);
         }
 
         @Override
@@ -184,8 +149,7 @@ public class OtplessWebView extends WebView {
             super.onPageFinished(view, url);
             if ("about:blank".equals(url)) return;
             if (mLoadingState != LoadingStatus.Failed) {
-                changeLoadingStatus(LoadingStatus.Success);
-                mErrorLayout.setVisibility(View.GONE);
+                changeLoadingStatus(LoadingStatus.Success, null);
                 injectJavaScript();
             } else { // failed case
                 loadUrl("about:blank");
@@ -205,33 +169,18 @@ public class OtplessWebView extends WebView {
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             super.onReceivedError(view, errorCode, description, failingUrl);
             if (failingUrl != null && failingUrl.equals(mLoadingUrl)) {
-                changeLoadingStatus(LoadingStatus.Failed);
-                mErrorLayout.setVisibility(View.VISIBLE);
                 final String errorMessage = "Unable to connect." + "\nPlease retry.";
-                mErrorTv.setText(errorMessage);
-                mRetryButton.setVisibility(View.VISIBLE);
+                changeLoadingStatus(LoadingStatus.Failed, errorMessage);
             }
         }
     }
 
-    public boolean isUrlLoaded() {
-        return mLoadingState == LoadingStatus.Success;
-    }
-
-    public final void enqueueWaid(final String waid) {
-        this.mEnqueuedWaid = waid;
-    }
-
-    final void pushEnqueuedWaid() {
-        if (mEnqueuedWaid == null) return;
-        callWebJs("onWaidReceived", mEnqueuedWaid);
-        mEnqueuedWaid = null;
-    }
-
-    private void changeLoadingStatus(LoadingStatus loadingStatus) {
+    private void changeLoadingStatus(LoadingStatus loadingStatus, String message) {
         this.mLoadingState = loadingStatus;
         if (this.pageLoadStatusCallback != null) {
-            this.pageLoadStatusCallback.onPageStatusChange(loadingStatus);
+            this.pageLoadStatusCallback.onPageStatusChange(
+                    new LoadingStatusData(loadingStatus, message)
+            );
         }
     }
 }

@@ -362,6 +362,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         if (containerView.getWebManager() != null) {
             containerView.getWebManager().setNativeWebListener(OtplessViewImpl.this);
         }
+        containerView.setUiConfiguration(extras);
         parent.addView(containerView);
         wContainer = new WeakReference<>(containerView);
         // check for listener and add view

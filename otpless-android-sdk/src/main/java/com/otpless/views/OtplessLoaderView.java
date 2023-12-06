@@ -21,7 +21,8 @@ import androidx.annotation.RequiresApi;
 
 import com.otpless.R;
 
-import java.util.HashMap;
+import org.json.JSONObject;
+
 
 public class OtplessLoaderView extends FrameLayout {
 
@@ -30,7 +31,8 @@ public class OtplessLoaderView extends FrameLayout {
     private ProgressBar mOtplessProgress;
     private Button mRetryButton;
 
-    private HashMap<String, String> mColorConfigMap = new HashMap<>();
+    @Nullable
+    private JSONObject mColorConfig;
 
     public OtplessLoaderView(@NonNull Context context) {
         super(context);
@@ -100,8 +102,8 @@ public class OtplessLoaderView extends FrameLayout {
         this.setVisibility(View.GONE);
     }
 
-    void setConfiguration(final HashMap<String, String> configMap) {
-        this.mColorConfigMap = configMap;
+    void setConfiguration(final JSONObject extras) {
+        this.mColorConfig = extras;
         resetConfiguration();
     }
 
@@ -112,8 +114,9 @@ public class OtplessLoaderView extends FrameLayout {
     }
 
     private void resetConfiguration() {
+        if (this.mColorConfig == null) return;
         // parse primary color and set to retry button
-        parseColor(this.mColorConfigMap.get("primaryColor"), (primaryColor) -> {
+        parseColor(this.mColorConfig.optString("primaryColor"), (primaryColor) -> {
             //region ==== creating color state list
             int[][] states = new int[][]{
                     new int[]{android.R.attr.state_enabled}, // enabled
@@ -134,26 +137,24 @@ public class OtplessLoaderView extends FrameLayout {
             }
         });
         // parse close button text color
-        parseColor(this.mColorConfigMap.get("closeButtonColor"), (closeButtonColor) -> {
+        parseColor(this.mColorConfig.optString("closeButtonColor"), (closeButtonColor) -> {
             this.mCloseTv.setTextColor(closeButtonColor);
         });
         // parse loader color and set to progress bar
-        parseColor(this.mColorConfigMap.get("loaderColor"), (loaderColor) -> {
-            final Drawable progressDrawable = mOtplessProgress.getProgressDrawable();
-            if (progressDrawable != null) {
-                final PorterDuffColorFilter filter = new PorterDuffColorFilter(loaderColor, PorterDuff.Mode.SRC_IN);
-                progressDrawable.setColorFilter(filter);
+        parseColor(this.mColorConfig.optString("loaderColor"), (loaderColor) -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mOtplessProgress.setIndeterminateTintList(ColorStateList.valueOf(loaderColor));
             }
         });
         // parse text color and set it info text and retry button text
-        parseColor(this.mColorConfigMap.get("textColor"), (textColor) -> {
+        parseColor(this.mColorConfig.optString("textColor"), (textColor) -> {
             this.mInfoTv.setTextColor(textColor);
             this.mRetryButton.setTextColor(textColor);
         });
     }
 
     private void parseColor(final String hexColor, @NonNull final OnColorParseCallback callback) {
-        if (hexColor == null) return;
+        if (hexColor == null || hexColor.isEmpty()) return;
         try {
             final int color = Color.parseColor(hexColor);
             callback.onColorParsed(color);

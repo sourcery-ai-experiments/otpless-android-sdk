@@ -43,6 +43,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/otpless_retry"
+        android:visibility="gone"
         android:textColor="@color/black"
         android:backgroundTint="@color/otpless_primary"
         android:layout_gravity="bottom|center"

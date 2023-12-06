@@ -33,12 +33,11 @@
 
     </FrameLayout>
 
-    <ProgressBar
-        android:id="@+id/otpless_progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:indeterminateTint="@color/otpless_primary"
-        android:visibility="gone"
-        android:layout_gravity="center"/>
+    <com.otpless.views.OtplessLoaderView
+        android:id="@+id/otpless_loader_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:background="@color/semi_transparent_gray"/>
 
 </FrameLayout>

@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -20,7 +19,6 @@ import com.otpless.R;
 import com.otpless.main.OtplessManager;
 import com.otpless.main.OtplessViewContract;
 import com.otpless.main.WebActivityContract;
-import com.otpless.web.LoadingStatus;
 import com.otpless.web.NativeWebManager;
 import com.otpless.web.OtplessWebView;
 import com.otpless.web.OtplessWebViewWrapper;
@@ -31,7 +29,7 @@ import org.json.JSONObject;
 public class OtplessContainerView extends FrameLayout implements WebActivityContract {
 
     private FrameLayout parentVg;
-    private ProgressBar progressBar;
+    private OtplessLoaderView otplessLoaderView;
     private OtplessWebView webView;
 
     private NativeWebManager webManager;
@@ -64,7 +62,8 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         addView(view);
         // assigning all the view
         parentVg = view.findViewById(R.id.otpless_parent_vg);
-        progressBar = view.findViewById(R.id.otpless_progress_bar);
+        otplessLoaderView = view.findViewById(R.id.otpless_loader_view);
+        otplessLoaderView.setOtplessLoaderCallback(this::onOtplessLoaderEvent);
         OtplessWebViewWrapper webViewWrapper = view.findViewById(R.id.otpless_web_wrapper);
         networkTv = view.findViewById(R.id.otpless_no_internet_tv);
         webView = webViewWrapper.getWebView();
@@ -83,15 +82,43 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         parentVg.startAnimation(animation);
         if (OtplessManager.getInstance().isToShowPageLoader()) {
             webView.pageLoadStatusCallback = (loadingStatus -> {
-                if (loadingStatus == LoadingStatus.InProgress) {
-                    progressBar.setVisibility(View.VISIBLE);
-                } else {
-                    progressBar.setVisibility(View.GONE);
+                switch (loadingStatus.getLoadingStatus()) {
+                    case InProgress:
+                    case Started:
+                        otplessLoaderView.show();
+                        break;
+                    case Failed:
+                        String errorMessage = loadingStatus.getMessage();
+                        if (errorMessage == null) {
+                            // shield case
+                            errorMessage = "Something went wrong";
+                        }
+                        otplessLoaderView.showRetry(errorMessage);
+                        break;
+                    case Success:
+                        otplessLoaderView.hide();
                 }
             });
         }
         webManager = new NativeWebManager((Activity) getContext(), this.webView, this);
         this.webView.attachNativeWebManager(webManager);
+    }
+
+    private void onOtplessLoaderEvent(final OtplessLoaderEvent event) {
+        switch (event) {
+            case CLOSE:
+                final JSONObject errorJson = new JSONObject();
+                try {
+                    errorJson.put("error", "User cancelled.");
+                } catch (JSONException ignore) {
+                }
+                onVerificationResult(
+                        Activity.RESULT_CANCELED, errorJson
+                );
+                break;
+            case RETRY:
+                this.webView.loadWebUrl(this.webView.getLoadedUrl());
+        }
     }
 
     public NativeWebManager getWebManager() {
@@ -144,5 +171,9 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         if (networkTv != null) {
             networkTv.setVisibility(View.GONE);
         }
+    }
+
+    public void setUiConfiguration(final JSONObject extras) {
+        this.otplessLoaderView.setConfiguration(extras);
     }
 }
