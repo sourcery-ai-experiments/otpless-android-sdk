@@ -2,5 +2,6 @@
     <string name="app_name">Otpless</string>
     <string name="otpless_go_otpless">Go OTP-less</string>
     <string name="otpless_retry">Retry</string>
-
+    <string name="otpless_close">Close</string>
+    <string name="otpless_loading">Loading…</string>
 </resources>
