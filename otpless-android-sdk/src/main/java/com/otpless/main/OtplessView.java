@@ -49,6 +49,8 @@ public interface OtplessView {
     /// to receive the events in apps
     void setEventCallback(final OtplessEventCallback callback);
 
+    void setBackBackButtonSubscription(final boolean backSubscription);
+
     /// to configure the visibility of otpless fab button
     void showOtplessFab(boolean isToShow);
 
@@ -71,4 +73,7 @@ public interface OtplessView {
 
     // to show otpless login page if callback is already set
     void showOtplessLoginPage();
+
+    // to get the phone number selection info
+    void onActivityResult(int requestCode, int resultCode, final Intent intent);
 }

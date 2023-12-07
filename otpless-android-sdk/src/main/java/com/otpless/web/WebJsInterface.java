@@ -103,7 +103,9 @@ public class WebJsInterface {
                 case 7:
                     final String deeplink = getString(jsonObject, "deeplink");
                     if (deeplink.length() == 0) return;
-                    this.mListener.openDeeplink(deeplink);
+                    // checkout for extras
+                    final JSONObject extra = getJson(jsonObject, "extra");
+                    this.mListener.openDeeplink(deeplink, extra);
                     break;
                 // get app info
                 case 8:
@@ -131,6 +133,17 @@ public class WebJsInterface {
                     final JSONObject eventData = getJson(jsonObject, "eventData");
                     if (eventData == null) return;
                     this.mListener.pushEvent(eventData);
+                    break;
+                case 16:
+                    final Boolean otpR = getBoolean(jsonObject, "otpread");
+                    boolean otpRead = false;
+                    if (otpR != null) {
+                        otpRead = otpR;
+                    }
+                    this.mListener.otpAutoRead(otpRead);
+                    break;
+                case 17:
+                    this.mListener.phoneNumberSelection();
                     break;
             }
         } catch (JSONException e) {

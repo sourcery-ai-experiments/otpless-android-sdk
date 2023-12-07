@@ -1,6 +1,10 @@
 package com.otpless.utils;
 
+import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
@@ -12,8 +16,16 @@ import android.util.Base64;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.browser.customtabs.CustomTabsIntent;
 
+import com.google.android.gms.auth.api.credentials.Credential;
+import com.google.android.gms.auth.api.credentials.Credentials;
+import com.google.android.gms.auth.api.credentials.CredentialsClient;
+import com.google.android.gms.auth.api.credentials.CredentialsOptions;
+import com.google.android.gms.auth.api.credentials.HintRequest;
 import com.otpless.BuildConfig;
+import com.otpless.dto.Triple;
+import com.otpless.dto.Tuple;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
 
@@ -26,12 +38,34 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Utility {
 
     @NonNull
     private static final HashMap<String, String> mAdditionalAppInfo = new HashMap<>();
+
+    static final String TELEGRAM_APP_PACKAGE_NAME = "org.telegram.messenger";
+    static final String MI_CHAT_APP_PACKAGE_NAME = "com.michatapp.im";
+    static final String LINE_APP_PACKAGE_NAME = "jp.naver.line.android";
+    static final String DISCORD_PACKAGE_NAME = "com.discord";
+    static final String SLACK_PACKAGE_NAME = "com.Slack";
+    static final String VIBER_PACKAGE_NAME = "com.viber.voip";
+    static final String SIGNAL_PACKAGE_NAME = "org.thoughtcrime.securesms";
+    static final String BOTIM_PACKAGE_NAME = "im.thebot.messenger";
+
+    private static final List<Tuple<String, String>> messagingAppPackageList = Arrays.asList(
+            new Tuple<>("Telegram", TELEGRAM_APP_PACKAGE_NAME),
+            new Tuple<>("MiChat", MI_CHAT_APP_PACKAGE_NAME),
+            new Tuple<>("Line", LINE_APP_PACKAGE_NAME),
+            new Tuple<>("Discord", DISCORD_PACKAGE_NAME),
+            new Tuple<>("Slack", SLACK_PACKAGE_NAME),
+            new Tuple<>("Viber", VIBER_PACKAGE_NAME),
+            new Tuple<>("Signal", SIGNAL_PACKAGE_NAME),
+            new Tuple<>("Botim", BOTIM_PACKAGE_NAME)
+    );
+    public static final int PHONE_SELECTION_REQUEST_CODE = 99876;
 
     public static void addContextInfo(final Context context) {
         final Context applicationContext = context.getApplicationContext();
@@ -56,6 +90,12 @@ public class Utility {
         mAdditionalAppInfo.put("deviceId", androidId);
         mAdditionalAppInfo.put("installerName", getInstallerName(context));
         mAdditionalAppInfo.put("appSignature", getAppSignature(context));
+        // adding other chatting apps install status
+        final PackageManager packageManager = applicationContext.getPackageManager();
+        final List<Triple<String, String, Boolean>> messagingApps = Utility.getMessagingInstalledAppStatus(packageManager);
+        for (final Triple<String, String, Boolean> installStatus : messagingApps) {
+            mAdditionalAppInfo.put("has" + installStatus.getFirst(), String.valueOf(installStatus.getThird()));
+        }
     }
 
     public static boolean isAppInstalled(final PackageManager packageManager, final String packageName) {
@@ -153,7 +193,7 @@ public class Utility {
 
     public static boolean isOtplessAppInstalled(final Context context) {
         final PackageManager manager = context.getPackageManager();
-        return  isAppInstalled(manager, "com.otpless.app");
+        return isAppInstalled(manager, "com.otpless.app");
     }
 
     @NonNull
@@ -213,5 +253,47 @@ public class Utility {
         } catch (PackageManager.NameNotFoundException | UnsupportedOperationException exception) {
             return "";
         }
+    }
+
+    public static void openChromeCustomTab(@NonNull final Activity activity, @NonNull final Uri uri) {
+        final CustomTabsIntent tabIntent = new CustomTabsIntent.Builder()
+                .build();
+
+        tabIntent.launchUrl(activity, uri);
+    }
+
+    public static Tuple<Boolean, IntentSender.SendIntentException> openPhoneNumberSelection(final Activity activity) {
+        final HintRequest request = new HintRequest.Builder()
+                .setPhoneNumberIdentifierSupported(true)
+                .build();
+        final CredentialsOptions options = new CredentialsOptions.Builder()
+                .forceEnableSaveDialog()
+                .build();
+        final CredentialsClient client = Credentials.getClient(activity, options);
+        final PendingIntent intent = client.getHintPickerIntent(request);
+        try {
+            activity.startIntentSenderForResult(intent.getIntentSender(), PHONE_SELECTION_REQUEST_CODE, null, 0, 0, 0);
+            return new Tuple<>(true, null);
+        } catch (IntentSender.SendIntentException exception) {
+            return new Tuple<>(false, exception);
+        }
+    }
+
+    public static Tuple<String, Exception> parsePhoneNumberSelectionIntent(@NonNull final Intent intent) {
+        final Object obj = intent.getParcelableExtra(Credential.EXTRA_KEY);
+        if (obj instanceof Credential) {
+            final Credential credential = (Credential) obj;
+            final String phoneNumber = credential.getId();
+            return new Tuple<>(phoneNumber, null);
+        }
+        return new Tuple<>(null, new Exception("Parsing Error: No credential data provided in intent"));
+    }
+
+    public static List<Triple<String, String, Boolean>> getMessagingInstalledAppStatus(@NonNull final PackageManager packageManager) {
+        final ArrayList<Triple<String, String, Boolean>> result = new ArrayList<>();
+        for (Tuple<String, String> each : messagingAppPackageList) {
+            result.add(new Triple<>(each.getFirst(), each.getSecond(), Utility.isAppInstalled(packageManager, each.getSecond())));
+        }
+        return result;
     }
 }

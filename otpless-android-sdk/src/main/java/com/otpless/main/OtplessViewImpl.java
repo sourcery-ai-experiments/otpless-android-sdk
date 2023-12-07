@@ -2,6 +2,7 @@ package com.otpless.main;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.util.Log;
 import android.util.TypedValue;
@@ -16,12 +17,15 @@ import androidx.annotation.NonNull;
 import com.otpless.R;
 import com.otpless.dto.OtplessRequest;
 import com.otpless.dto.OtplessResponse;
+import com.otpless.dto.Triple;
+import com.otpless.dto.Tuple;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
 import com.otpless.network.NetworkStatusData;
 import com.otpless.network.ONetworkStatus;
 import com.otpless.network.OnConnectionChangeListener;
 import com.otpless.network.OtplessNetworkManager;
+import com.otpless.utils.OtpReaderManager;
 import com.otpless.utils.Utility;
 import com.otpless.views.FabButtonAlignment;
 import com.otpless.views.OtplessContainerView;
@@ -35,6 +39,7 @@ import org.json.JSONObject;
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConnectionChangeListener, NativeWebListener {
@@ -57,11 +62,18 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private static final int ButtonHeight = 40;
 
     private boolean isLoginPageEnabled = false;
+    private boolean backSubscription = true;
 
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
 
+    OtplessViewRemovalNotifier viewRemovalNotifier = null;
+
     OtplessViewImpl(final Activity activity) {
         this.activity = activity;
+    }
+
+    Activity getActivity() {
+        return this.activity;
     }
 
     @Override
@@ -179,10 +191,17 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         urlToLoad.appendQueryParameter("package", packageName);
         urlToLoad.appendQueryParameter("hasWhatsapp", String.valueOf(Utility.isWhatsAppInstalled(activity)));
         urlToLoad.appendQueryParameter("hasOtplessApp", String.valueOf(Utility.isOtplessAppInstalled(activity)));
+        //check other chatting apps
+        final PackageManager pm = activity.getPackageManager();
+        final List<Triple<String, String, Boolean>> messagingApps = Utility.getMessagingInstalledAppStatus(pm);
+        for (final Triple<String, String, Boolean> installStatus: messagingApps) {
+            urlToLoad.appendQueryParameter("has" + installStatus.getFirst(), String.valueOf(installStatus.getThird()));
+        }
         if (isLoginPageEnabled) {
             urlToLoad.appendQueryParameter("lp", String.valueOf(true));
         }
         urlToLoad.appendQueryParameter("login_uri", loginUrl);
+        urlToLoad.appendQueryParameter("nbbs", String.valueOf(this.backSubscription));
         return urlToLoad.build().toString();
     }
 
@@ -260,6 +279,14 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         if (manager == null) return false;
         final OtplessWebView webView = wContainer.get().getWebView();
         if (webView == null) return false;
+        if (this.eventCallback != null && this.backSubscription && this.isLoginPageEnabled) {
+            if (manager.getBackSubscription()) {
+                webView.callWebJs("onHardBackPressed");
+            }
+            final OtplessEventData eventData = new OtplessEventData(OtplessEventCode.BACK_PRESSED, null);
+            this.eventCallback.onOtplessEvent(eventData);
+            return true;
+        }
         if (manager.getBackSubscription()) {
             // back-press has been consumed
             webView.callWebJs("onHardBackPressed");
@@ -275,6 +302,22 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         Uri uri = intent.getData();
         if (uri == null) return false;
         if (!"otpless".equals(uri.getHost())) return false;
+        // check if passed deeplink is having uri query param then open that is chrome custom tab
+        final String otplessCode = uri.getQueryParameter("uri");
+        if (Utility.isValid(otplessCode)) {
+            // checkout the host for provided otpless uri
+            Uri queryUri;
+            try {
+                queryUri = Uri.parse(otplessCode);
+                if (queryUri.getHost() == null || !queryUri.getHost().contains("otpless")) {
+                    return false;
+                }
+            } catch (Exception ignore) {
+                return false;
+            }
+            Utility.openChromeCustomTab(activity, queryUri);
+            return true;
+        }
         // check if web view is already loaded or not if webview is loaded then reload the url
         final OtplessContainerView otplessContainerView = wContainer.get();
         if (otplessContainerView != null && otplessContainerView.getWebView() != null) {
@@ -340,9 +383,14 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         View container = parent.findViewWithTag(VIEW_TAG_NAME);
         if (container != null) {
             parent.removeView(container);
+            if (viewRemovalNotifier != null) {
+                viewRemovalNotifier.onOtplessViewRemoved(this);
+            }
             OtplessNetworkManager.getInstance().removeListener(activity, this);
             wContainer.clear();
         }
+        // unregister the otp autoreader
+        OtpReaderManager.getInstance().stopOtpReader();
     }
 
     private ViewGroup findParentView() {
@@ -423,6 +471,11 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     @Override
     public void setEventCallback(final OtplessEventCallback callback) {
         this.eventCallback = callback;
+    }
+
+    @Override
+    public void setBackBackButtonSubscription(final boolean backSubscription) {
+        this.backSubscription = backSubscription;
     }
 
     @Override
@@ -569,5 +622,14 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         this.isLoginPageEnabled = true;
         addViewIfNotAdded();
         loadWebView(null, null);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, final Intent intent) {
+        final OtplessContainerView containerView = wContainer.get();
+        if (containerView == null || containerView.getWebManager() == null || containerView.getWebView() == null) return;
+        if (requestCode != Utility.PHONE_SELECTION_REQUEST_CODE || resultCode != Activity.RESULT_OK || intent == null) return;
+        final Tuple<String, Exception> parseData = Utility.parsePhoneNumberSelectionIntent(intent);
+        containerView.getWebManager().onPhoneNumberSelectionResult(parseData);
     }
 }

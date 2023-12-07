@@ -10,13 +10,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.OtpLessSample">
         <activity
-            android:name="com.otpless.otplesssample.HomeActivity"
-            android:exported="false">
-            <meta-data
-                android:name="android.app.lib_name"
-                android:value="" />
-        </activity>
-        <activity
             android:name="com.otpless.otplesssample.MainActivity"
             android:launchMode="singleTop"
             android:exported="true">

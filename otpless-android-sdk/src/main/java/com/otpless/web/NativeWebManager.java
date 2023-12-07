@@ -3,6 +3,7 @@ package com.otpless.web;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -13,20 +14,25 @@ import android.util.Log;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.otpless.BuildConfig;
+import com.otpless.dto.Triple;
+import com.otpless.dto.Tuple;
 import com.otpless.main.NativeWebListener;
 import com.otpless.main.OtplessEventCode;
 import com.otpless.main.OtplessEventData;
 import com.otpless.main.WebActivityContract;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
+import com.otpless.utils.OtpReaderManager;
 import com.otpless.utils.Utility;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class NativeWebManager implements OtplessWebListener {
@@ -48,6 +54,7 @@ public class NativeWebManager implements OtplessWebListener {
         mActivity = activity;
         mWebView = webView;
         this.contract = contract;
+        Utility.addContextInfo(mActivity);
     }
 
     // key 1
@@ -74,11 +81,15 @@ public class NativeWebManager implements OtplessWebListener {
 
     // key 6
     @Override
-    public void openDeeplink(@NonNull final String deeplink) {
+    public void openDeeplink(@NonNull final String deeplink, @Nullable final JSONObject extra) {
         try {
             final Uri deeplinkUrl = Uri.parse(deeplink);
-            final Intent whatsappIntent = new Intent(Intent.ACTION_VIEW, deeplinkUrl);
-            mActivity.startActivity(whatsappIntent);
+            if (extra != null && extra.optBoolean("cct", false)) {
+                Utility.openChromeCustomTab(mActivity, deeplinkUrl);
+            } else {
+                final Intent whatsappIntent = new Intent(Intent.ACTION_VIEW, deeplinkUrl);
+                mActivity.startActivity(whatsappIntent);
+            }
             //region ==== sending the event ====
             final String channel = deeplinkUrl.getScheme() + "://" + deeplinkUrl.getHost();
 
@@ -155,6 +166,12 @@ public class NativeWebManager implements OtplessWebListener {
         map.put("deviceId", androidId);
         map.put("hasWhatsapp", String.valueOf(Utility.isWhatsAppInstalled(mActivity)));
         map.put("appSignature", Utility.getAppSignature(mActivity));
+        //adding other chatting app
+        final PackageManager packageManager = applicationContext.getPackageManager();
+        final List<Triple<String, String, Boolean>> messagingApps = Utility.getMessagingInstalledAppStatus(packageManager);
+        for (final Triple<String, String, Boolean> installStatus : messagingApps) {
+            map.put("has" + installStatus.getFirst(), String.valueOf(installStatus.getThird()));
+        }
         return map;
     }
 
@@ -240,5 +257,42 @@ public class NativeWebManager implements OtplessWebListener {
 
     public void setNativeWebListener(NativeWebListener nativeWebListener) {
         this.nativeWebListener = nativeWebListener;
+    }
+
+    // key 16
+    @Override
+    public void otpAutoRead(final boolean enable) {
+        if (enable) {
+            OtpReaderManager.getInstance().startOtpReader(
+                    this.mActivity, otpResult -> {
+                        if (otpResult.isSuccess()) {
+                            mWebView.callWebJs("onOtpReadSuccess", otpResult.getOtp());
+                        } else {
+                            mWebView.callWebJs("onOtpReadError", otpResult.getErrorMessage());
+                        }
+                    }
+            );
+        } else {
+            OtpReaderManager.getInstance().stopOtpReader();
+        }
+    }
+
+    // key 17
+    @Override
+    public void phoneNumberSelection() {
+        mActivity.runOnUiThread(() -> {
+            final Tuple<Boolean, IntentSender.SendIntentException> result = Utility.openPhoneNumberSelection(mActivity);
+            if (!result.getFirst()) {
+                mWebView.callWebJs("onPhoneNumberSelectionError", result.getSecond().getMessage());
+            }
+        });
+    }
+
+    public void onPhoneNumberSelectionResult(final Tuple<String, Exception> data) {
+        if (data.getSecond() == null) {
+            mWebView.callWebJs("onPhoneNumberSelectionSuccess", data.getFirst());
+        } else {
+            mWebView.callWebJs("onPhoneNumberSelectionError", data.getSecond());
+        }
     }
 }

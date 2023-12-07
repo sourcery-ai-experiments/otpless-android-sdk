@@ -1,13 +1,14 @@
 package com.otpless.web;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONObject;
 
 public interface OtplessWebListener extends WebLoaderCallback {
     void subscribeBackPress(final boolean subscribe);
 
-    void openDeeplink(@NonNull final String deeplink);
+    void openDeeplink(@NonNull final String deeplink, @Nullable final JSONObject extra);
 
     void saveString(@NonNull final String infoKey, @NonNull final String infoValue);
 
@@ -29,4 +30,10 @@ public interface OtplessWebListener extends WebLoaderCallback {
 
     //key 15
     void pushEvent(final JSONObject eventData);
+
+    //key 16
+    void otpAutoRead(final boolean enable);
+
+    //key 17
+    void phoneNumberSelection();
 }
