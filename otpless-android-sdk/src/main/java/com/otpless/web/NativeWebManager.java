@@ -159,7 +159,6 @@ public class NativeWebManager implements OtplessWebListener {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-
         map.put("hasWhatsapp", String.valueOf(Utility.isWhatsAppInstalled(mActivity)));
         map.put("appSignature", Utility.getAppSignature(mActivity));
         //adding other chatting app
