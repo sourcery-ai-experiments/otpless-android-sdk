@@ -159,11 +159,7 @@ public class NativeWebManager implements OtplessWebListener {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-        // adding android id
-        String androidId = Settings.Secure.getString(
-                applicationContext.getContentResolver(), Settings.Secure.ANDROID_ID
-        );
-        map.put("deviceId", androidId);
+
         map.put("hasWhatsapp", String.valueOf(Utility.isWhatsAppInstalled(mActivity)));
         map.put("appSignature", Utility.getAppSignature(mActivity));
         //adding other chatting app
