@@ -21,6 +21,7 @@ import androidx.annotation.RequiresApi;
 
 import com.otpless.R;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 
@@ -85,10 +86,23 @@ public class OtplessLoaderView extends FrameLayout {
 
     void show() {
         this.mOtplessProgress.setVisibility(View.VISIBLE);
-        final String loadingText = getContext().getString(R.string.otpless_loading);
+        final String loadingText = getLoadingText();
         this.mInfoTv.setText(loadingText);
         this.mRetryButton.setVisibility(View.GONE);
         this.setVisibility(View.VISIBLE);
+    }
+
+    private String getLoadingText() {
+        String loadingText = getContext().getString(R.string.otpless_loading);;
+        if (mColorConfig == null) return  loadingText;
+        try {
+            final String text = mColorConfig.getString("loadingText");
+            if (!text.isEmpty()) {
+                return text;
+            }
+        } catch (JSONException ignore) {
+        }
+        return loadingText;
     }
 
     void showRetry(@NonNull final String errorText) {
@@ -151,6 +165,7 @@ public class OtplessLoaderView extends FrameLayout {
             this.mInfoTv.setTextColor(textColor);
             this.mRetryButton.setTextColor(textColor);
         });
+
     }
 
     private void parseColor(final String hexColor, @NonNull final OnColorParseCallback callback) {

@@ -175,8 +175,11 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
                     final JSONObject params = extraParams.getJSONObject("params");
                     for (Iterator<String> it = params.keys(); it.hasNext(); ) {
                         String key = it.next();
-                        final String value = params.optString(key);
+                        String value = params.optString(key);
                         if (value.isEmpty()) continue;
+                        if (value.charAt(0) == '#') {
+                            value = value.substring(1);
+                        }
                         if ("login_uri".equals(key)) {
                             loginUrl = value + ".otpless://otpless";
                             continue;

@@ -174,6 +174,12 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
     }
 
     public void setUiConfiguration(final JSONObject extras) {
+        try {
+            final JSONObject params = extras.getJSONObject("params");
+            this.otplessLoaderView.setConfiguration(params);
+        } catch (JSONException e) {
+            this.otplessLoaderView.setConfiguration(extras);
+        }
         this.otplessLoaderView.setConfiguration(extras);
     }
 }

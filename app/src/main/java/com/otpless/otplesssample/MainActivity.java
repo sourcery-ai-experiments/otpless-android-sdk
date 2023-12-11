@@ -30,10 +30,14 @@ public class MainActivity extends AppCompatActivity {
 
         final JSONObject extra = new JSONObject();
         try {
-            extra.put("primaryColor", "#030ffc");
-            extra.put("closeButtonColor", "#03fc24");
-            extra.put("loaderColor", "#fc03ec");
-            extra.put("textColor", "#03fcf4");
+            extra.put("method", "get");
+            final JSONObject params = new JSONObject();
+            params.put("primaryColor", "#030ffc");
+            params.put("closeButtonColor", "#03fc24");
+            params.put("loaderColor", "#fc03ec");
+            params.put("textColor", "#03fcf4");
+            params.put("loadingText", "I am Loading");
+            extra.put("params", params);
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
