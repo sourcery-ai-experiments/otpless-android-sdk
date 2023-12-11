@@ -2,7 +2,6 @@ package com.otpless.otplesssample;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.CheckBox;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;

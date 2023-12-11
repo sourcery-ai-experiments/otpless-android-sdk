@@ -81,13 +81,8 @@ public class Utility {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-        // adding android id
-        String androidId = Settings.Secure.getString(
-                applicationContext.getContentResolver(), Settings.Secure.ANDROID_ID
-        );
         mAdditionalAppInfo.put("hasWhatsapp", String.valueOf(isWhatsAppInstalled(context)));
         mAdditionalAppInfo.put("hasOtplessApp", String.valueOf(isOtplessAppInstalled(context)));
-        mAdditionalAppInfo.put("deviceId", androidId);
         mAdditionalAppInfo.put("installerName", getInstallerName(context));
         mAdditionalAppInfo.put("appSignature", getAppSignature(context));
         // adding other chatting apps install status
