@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
             params.put("loaderColor", "#fc03ec");
             params.put("textColor", "#03fcf4");
             params.put("loadingText", "I am Loading");
+            params.put("loaderAlpha", "0.5");
             extra.put("params", params);
         } catch (JSONException e) {
             throw new RuntimeException(e);

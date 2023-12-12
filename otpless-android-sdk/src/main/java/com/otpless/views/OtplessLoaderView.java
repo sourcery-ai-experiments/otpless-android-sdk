@@ -31,6 +31,7 @@ public class OtplessLoaderView extends FrameLayout {
     private TextView mInfoTv, mCloseTv;
     private ProgressBar mOtplessProgress;
     private Button mRetryButton;
+    private FrameLayout mContainerFl;
 
     @Nullable
     private JSONObject mColorConfig;
@@ -78,6 +79,7 @@ public class OtplessLoaderView extends FrameLayout {
         // assigning the progress bar and error text view
         mOtplessProgress = otplessLoaderView.findViewById(R.id.otpless_progress_bar);
         mInfoTv = otplessLoaderView.findViewById(R.id.otpless_info_tv);
+        mContainerFl = otplessLoaderView.findViewById(R.id.otpless_container_fl);
     }
 
     void setOtplessLoaderCallback(final OtplessLoaderCallback callback) {
@@ -165,7 +167,14 @@ public class OtplessLoaderView extends FrameLayout {
             this.mInfoTv.setTextColor(textColor);
             this.mRetryButton.setTextColor(textColor);
         });
-
+        // checking parsing for alpha for loader background
+        final String alphaString = this.mColorConfig.optString("loaderAlpha");
+        if (!alphaString.isEmpty()) {
+            try {
+                final float alpha = Float.parseFloat(alphaString);
+                mContainerFl.setAlpha(alpha);
+            } catch (Exception ignore){}
+        }
     }
 
     private void parseColor(final String hexColor, @NonNull final OnColorParseCallback callback) {

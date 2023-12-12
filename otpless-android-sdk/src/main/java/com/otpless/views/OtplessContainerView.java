@@ -180,6 +180,5 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         } catch (JSONException e) {
             this.otplessLoaderView.setConfiguration(extras);
         }
-        this.otplessLoaderView.setConfiguration(extras);
     }
 }
