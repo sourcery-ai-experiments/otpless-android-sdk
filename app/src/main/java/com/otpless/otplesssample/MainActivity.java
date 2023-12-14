@@ -8,9 +8,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.otpless.dto.OtplessResponse;
-import com.otpless.main.OtplessEventCallback;
-import com.otpless.main.OtplessEventCode;
-import com.otpless.main.OtplessEventData;
 import com.otpless.main.OtplessManager;
 import com.otpless.main.OtplessView;
 
@@ -51,11 +48,6 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.otpless_btn).setOnClickListener(v -> {
             otplessView.showOtplessLoginPage(extra, this::onOtplessCallback);
         });
-        final HashMap<String, String> noInternet = new HashMap<>();
-        noInternet.put("backgroundColor", "#00FF00");
-        noInternet.put("textColor", "#FF00FF");
-        otplessView.setNoInternetViewConfig(noInternet);
-
         findViewById(R.id.sign_in_complete).setOnClickListener(v -> {
             otplessView.onSignInCompleted();
         });

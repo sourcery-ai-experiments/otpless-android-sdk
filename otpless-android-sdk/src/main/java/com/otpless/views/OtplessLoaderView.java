@@ -84,23 +84,10 @@ public class OtplessLoaderView extends FrameLayout {
 
     void show() {
         this.mOtplessProgress.setVisibility(View.VISIBLE);
-        final String loadingText = getLoadingText();
-        this.mInfoTv.setText(loadingText);
+        this.mInfoTv.setVisibility(View.GONE);
         this.mRetryButton.setVisibility(View.GONE);
+        this.mCloseTv.setVisibility(View.VISIBLE);
         this.setVisibility(View.VISIBLE);
-    }
-
-    private String getLoadingText() {
-        String loadingText = getContext().getString(R.string.otpless_loading);;
-        if (mColorConfig == null) return  loadingText;
-        try {
-            final String text = mColorConfig.getString("loadingText");
-            if (!text.isEmpty()) {
-                return text;
-            }
-        } catch (JSONException ignore) {
-        }
-        return loadingText;
     }
 
     void showRetry(@NonNull final String errorText) {

@@ -79,7 +79,7 @@ public interface OtplessView {
     // to get the phone number selection info
     void onActivityResult(int requestCode, int resultCode, final Intent intent);
 
-    default void setNoInternetViewVisibility(final boolean isVisible) {}
+    default void setLoaderVisibility(final boolean isVisible) {}
 
-    default void setNoInternetViewConfig(final HashMap<String, String> noInternetViewConfig) {}
+    default void setRetryVisibility(final boolean isVisible) {}
 }

@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,8 +25,6 @@ import com.otpless.web.OtplessWebViewWrapper;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
-
 public class OtplessContainerView extends FrameLayout implements WebActivityContract {
 
     private FrameLayout parentVg;
@@ -37,9 +34,10 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
     private NativeWebManager webManager;
 
     private OtplessViewContract viewContract;
-    private TextView networkTv;
     @Nullable
-    private HashMap<String, String> noInternetViewConfig = null;
+
+    public boolean isToShowLoader = true;
+    public boolean isToShowRetry = false;
 
     public OtplessContainerView(@NonNull Context context) {
         super(context);
@@ -69,7 +67,6 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         otplessLoaderView = view.findViewById(R.id.otpless_loader_view);
         otplessLoaderView.setOtplessLoaderCallback(this::onOtplessLoaderEvent);
         OtplessWebViewWrapper webViewWrapper = view.findViewById(R.id.otpless_web_wrapper);
-        networkTv = view.findViewById(R.id.otpless_no_internet_tv);
         webView = webViewWrapper.getWebView();
         if (webView == null) {
             final JSONObject errorJson = new JSONObject();
@@ -86,12 +83,14 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         parentVg.startAnimation(animation);
         if (OtplessManager.getInstance().isToShowPageLoader()) {
             webView.pageLoadStatusCallback = (loadingStatus -> {
+                if (!isToShowLoader) return;
                 switch (loadingStatus.getLoadingStatus()) {
                     case InProgress:
                     case Started:
                         otplessLoaderView.show();
                         break;
                     case Failed:
+                        if (!isToShowRetry) otplessLoaderView.hide();
                         String errorMessage = loadingStatus.getMessage();
                         if (errorMessage == null) {
                             // shield case
@@ -164,27 +163,6 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         this.viewContract = viewContract;
     }
 
-    public void showNoNetwork(final String error) {
-        if (networkTv != null) {
-            if (this.noInternetViewConfig != null) {
-                ColorUtils.parseColor(this.noInternetViewConfig.get("backgroundColor"), colorCode -> {
-                    networkTv.setBackgroundColor(colorCode);
-                });
-                ColorUtils.parseColor(this.noInternetViewConfig.get("textColor"), colorCode -> {
-                    networkTv.setTextColor(colorCode);
-                });
-            }
-            networkTv.setVisibility(View.VISIBLE);
-            networkTv.setText(error);
-        }
-    }
-
-    public void hideNoNetwork() {
-        if (networkTv != null) {
-            networkTv.setVisibility(View.GONE);
-        }
-    }
-
     public void setUiConfiguration(final JSONObject extras) {
         try {
             final JSONObject params = extras.getJSONObject("params");
@@ -192,9 +170,5 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         } catch (JSONException e) {
             this.otplessLoaderView.setConfiguration(extras);
         }
-    }
-
-    public void setNoInternetViewConfiguration(final HashMap<String, String> networkViewConfig) {
-        this.noInternetViewConfig = networkViewConfig;
     }
 }

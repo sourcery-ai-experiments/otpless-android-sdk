@@ -22,7 +22,6 @@ import com.otpless.dto.Tuple;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
 import com.otpless.network.NetworkStatusData;
-import com.otpless.network.ONetworkStatus;
 import com.otpless.network.OnConnectionChangeListener;
 import com.otpless.network.OtplessNetworkManager;
 import com.otpless.utils.OtpReaderManager;
@@ -37,7 +36,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -64,9 +62,8 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     private boolean isLoginPageEnabled = false;
     private boolean backSubscription = true;
-    private boolean isNoInternetViewVisible = true;
-
-    private HashMap<String, String> noInternetViewConfig = null;
+    private boolean isLoaderVisible = true;
+    private boolean isRetryVisible = true;
 
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
 
@@ -369,14 +366,11 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         if (containerView.getWebManager() != null) {
             containerView.getWebManager().setNativeWebListener(OtplessViewImpl.this);
         }
-        containerView.setNoInternetViewConfiguration(this.noInternetViewConfig);
+        containerView.isToShowLoader = this.isLoaderVisible;
+        containerView.isToShowRetry = this.isRetryVisible;
         containerView.setUiConfiguration(extras);
         parent.addView(containerView);
         wContainer = new WeakReference<>(containerView);
-        // check for listener and add view
-        if (OtplessNetworkManager.getInstance().getNetworkStatus().getStatus() == ONetworkStatus.DISABLED) {
-            containerView.showNoNetwork("You are not connected to internet.");
-        }
         OtplessNetworkManager.getInstance().addListeners(activity, this);
     }
 
@@ -462,25 +456,15 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     @Override
     public void onConnectionChange(NetworkStatusData statusData) {
-        if (!this.isNoInternetViewVisible) return;
+        if (!this.isLoaderVisible) return;
         final OtplessContainerView containerView = wContainer.get();
         if (containerView == null) return;
         activity.runOnUiThread(() -> {
-            if (statusData.getStatus() == ONetworkStatus.DISABLED) {
-                containerView.showNoNetwork("You are not connected to internet.");
-            } else if (statusData.getStatus() == ONetworkStatus.ENABLED) {
-                containerView.hideNoNetwork();
-            }
             // send the event call
             if (!statusData.isEnabled() && this.eventCallback != null) {
                 this.eventCallback.onInternetError();
             }
         });
-    }
-
-    @Override
-    public void setNoInternetViewVisibility(boolean isVisible) {
-        this.isNoInternetViewVisible = isVisible;
     }
 
     @Override
@@ -649,7 +633,12 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     }
 
     @Override
-    public void setNoInternetViewConfig(HashMap<String, String> noInternetViewConfig) {
-        this.noInternetViewConfig = noInternetViewConfig;
+    public void setLoaderVisibility(boolean isVisible) {
+        this.isLoaderVisible = isVisible;
+    }
+
+    @Override
+    public void setRetryVisibility(boolean isVisible) {
+        this.isRetryVisible = isVisible;
     }
 }
