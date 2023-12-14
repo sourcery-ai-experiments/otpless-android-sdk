@@ -2,10 +2,6 @@ package com.otpless.views;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -132,7 +128,7 @@ public class OtplessLoaderView extends FrameLayout {
     private void resetConfiguration() {
         if (this.mColorConfig == null) return;
         // parse primary color and set to retry button
-        parseColor(this.mColorConfig.optString("primaryColor"), (primaryColor) -> {
+        ColorUtils.parseColor(this.mColorConfig.optString("primaryColor"), (primaryColor) -> {
             //region ==== creating color state list
             int[][] states = new int[][]{
                     new int[]{android.R.attr.state_enabled}, // enabled
@@ -153,17 +149,17 @@ public class OtplessLoaderView extends FrameLayout {
             }
         });
         // parse close button text color
-        parseColor(this.mColorConfig.optString("closeButtonColor"), (closeButtonColor) -> {
+        ColorUtils.parseColor(this.mColorConfig.optString("closeButtonColor"), (closeButtonColor) -> {
             this.mCloseTv.setTextColor(closeButtonColor);
         });
         // parse loader color and set to progress bar
-        parseColor(this.mColorConfig.optString("loaderColor"), (loaderColor) -> {
+        ColorUtils.parseColor(this.mColorConfig.optString("loaderColor"), (loaderColor) -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 mOtplessProgress.setIndeterminateTintList(ColorStateList.valueOf(loaderColor));
             }
         });
         // parse text color and set it info text and retry button text
-        parseColor(this.mColorConfig.optString("textColor"), (textColor) -> {
+        ColorUtils.parseColor(this.mColorConfig.optString("textColor"), (textColor) -> {
             this.mInfoTv.setTextColor(textColor);
             this.mRetryButton.setTextColor(textColor);
         });
@@ -175,19 +171,5 @@ public class OtplessLoaderView extends FrameLayout {
                 mContainerFl.setAlpha(alpha);
             } catch (Exception ignore){}
         }
-    }
-
-    private void parseColor(final String hexColor, @NonNull final OnColorParseCallback callback) {
-        if (hexColor == null || hexColor.isEmpty()) return;
-        try {
-            final int color = Color.parseColor(hexColor);
-            callback.onColorParsed(color);
-        } catch (Exception ignore) {
-        }
-    }
-
-    @FunctionalInterface
-    interface OnColorParseCallback {
-        void onColorParsed(final int colorCode);
     }
 }

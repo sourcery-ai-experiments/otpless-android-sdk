@@ -37,6 +37,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -64,6 +65,8 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private boolean isLoginPageEnabled = false;
     private boolean backSubscription = true;
     private boolean isNoInternetViewVisible = true;
+
+    private HashMap<String, String> noInternetViewConfig = null;
 
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
 
@@ -366,6 +369,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         if (containerView.getWebManager() != null) {
             containerView.getWebManager().setNativeWebListener(OtplessViewImpl.this);
         }
+        containerView.setNoInternetViewConfiguration(this.noInternetViewConfig);
         containerView.setUiConfiguration(extras);
         parent.addView(containerView);
         wContainer = new WeakReference<>(containerView);
@@ -642,5 +646,10 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         if (requestCode != Utility.PHONE_SELECTION_REQUEST_CODE || resultCode != Activity.RESULT_OK || intent == null) return;
         final Tuple<String, Exception> parseData = Utility.parsePhoneNumberSelectionIntent(intent);
         containerView.getWebManager().onPhoneNumberSelectionResult(parseData);
+    }
+
+    @Override
+    public void setNoInternetViewConfig(HashMap<String, String> noInternetViewConfig) {
+        this.noInternetViewConfig = noInternetViewConfig;
     }
 }

@@ -26,6 +26,8 @@ import com.otpless.web.OtplessWebViewWrapper;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.HashMap;
+
 public class OtplessContainerView extends FrameLayout implements WebActivityContract {
 
     private FrameLayout parentVg;
@@ -36,6 +38,8 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
 
     private OtplessViewContract viewContract;
     private TextView networkTv;
+    @Nullable
+    private HashMap<String, String> noInternetViewConfig = null;
 
     public OtplessContainerView(@NonNull Context context) {
         super(context);
@@ -162,6 +166,14 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
 
     public void showNoNetwork(final String error) {
         if (networkTv != null) {
+            if (this.noInternetViewConfig != null) {
+                ColorUtils.parseColor(this.noInternetViewConfig.get("backgroundColor"), colorCode -> {
+                    networkTv.setBackgroundColor(colorCode);
+                });
+                ColorUtils.parseColor(this.noInternetViewConfig.get("textColor"), colorCode -> {
+                    networkTv.setTextColor(colorCode);
+                });
+            }
             networkTv.setVisibility(View.VISIBLE);
             networkTv.setText(error);
         }
@@ -182,7 +194,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         }
     }
 
-    public void setNoInternetViewConfiguration() {
-
+    public void setNoInternetViewConfiguration(final HashMap<String, String> networkViewConfig) {
+        this.noInternetViewConfig = networkViewConfig;
     }
 }

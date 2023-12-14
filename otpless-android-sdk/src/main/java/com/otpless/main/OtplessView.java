@@ -10,6 +10,8 @@ import com.otpless.views.OtplessUserDetailCallback;
 
 import org.json.JSONObject;
 
+import java.util.HashMap;
+
 public interface OtplessView {
     /// methods to start otpless
     @Deprecated
@@ -78,4 +80,6 @@ public interface OtplessView {
     void onActivityResult(int requestCode, int resultCode, final Intent intent);
 
     default void setNoInternetViewVisibility(final boolean isVisible) {}
+
+    default void setNoInternetViewConfig(final HashMap<String, String> noInternetViewConfig) {}
 }
