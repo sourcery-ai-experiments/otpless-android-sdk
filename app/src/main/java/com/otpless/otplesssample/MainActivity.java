@@ -11,11 +11,6 @@ import com.otpless.dto.OtplessResponse;
 import com.otpless.main.OtplessManager;
 import com.otpless.main.OtplessView;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.HashMap;
-
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,27 +21,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         // copy this code in onCreate of your Login Activity
-
-        final JSONObject extra = new JSONObject();
-        try {
-            extra.put("method", "get");
-            final JSONObject params = new JSONObject();
-            params.put("primaryColor", "#030ffc");
-            params.put("closeButtonColor", "#03fc24");
-            params.put("loaderColor", "#fc03ec");
-            params.put("textColor", "#03fcf4");
-            params.put("loadingText", "I am Loading");
-            params.put("loaderAlpha", "0.5");
-            extra.put("params", params);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-
         otplessView = OtplessManager.getInstance().getOtplessView(this);
 //        otplessView.showOtplessLoginPage(this::onOtplessCallback);
-        otplessView.setCallback(this::onOtplessCallback, extra, true);
+        otplessView.setCallback(this::onOtplessCallback, null, true);
         findViewById(R.id.otpless_btn).setOnClickListener(v -> {
-            otplessView.showOtplessLoginPage(extra, this::onOtplessCallback);
+            otplessView.showOtplessLoginPage(this::onOtplessCallback);
         });
         findViewById(R.id.sign_in_complete).setOnClickListener(v -> {
             otplessView.onSignInCompleted();

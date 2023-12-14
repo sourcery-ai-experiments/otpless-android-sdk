@@ -10,8 +10,6 @@ import com.otpless.views.OtplessUserDetailCallback;
 
 import org.json.JSONObject;
 
-import java.util.HashMap;
-
 public interface OtplessView {
     /// methods to start otpless
     @Deprecated

@@ -86,7 +86,7 @@ public class OtplessLoaderView extends FrameLayout {
         this.mOtplessProgress.setVisibility(View.VISIBLE);
         this.mInfoTv.setVisibility(View.GONE);
         this.mRetryButton.setVisibility(View.GONE);
-        this.mCloseTv.setVisibility(View.VISIBLE);
+        this.mCloseTv.setVisibility(View.GONE);
         this.setVisibility(View.VISIBLE);
     }
 
@@ -95,6 +95,7 @@ public class OtplessLoaderView extends FrameLayout {
         this.mInfoTv.setText(errorText);
         this.mRetryButton.setVisibility(View.VISIBLE);
         this.mOtplessProgress.setVisibility(View.GONE);
+        this.mCloseTv.setVisibility(View.VISIBLE);
     }
 
     void hide() {

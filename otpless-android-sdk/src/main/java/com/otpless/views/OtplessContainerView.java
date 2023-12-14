@@ -3,6 +3,7 @@ package com.otpless.views;
 import android.app.Activity;
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +19,7 @@ import com.otpless.R;
 import com.otpless.main.OtplessManager;
 import com.otpless.main.OtplessViewContract;
 import com.otpless.main.WebActivityContract;
+import com.otpless.utils.Utility;
 import com.otpless.web.NativeWebManager;
 import com.otpless.web.OtplessWebView;
 import com.otpless.web.OtplessWebViewWrapper;
@@ -37,7 +39,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
     @Nullable
 
     public boolean isToShowLoader = true;
-    public boolean isToShowRetry = false;
+    public boolean isToShowRetry = true;
 
     public OtplessContainerView(@NonNull Context context) {
         super(context);
@@ -94,7 +96,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
                         String errorMessage = loadingStatus.getMessage();
                         if (errorMessage == null) {
                             // shield case
-                            errorMessage = "Something went wrong";
+                            errorMessage = "Connection error : Failed to connect";
                         }
                         otplessLoaderView.showRetry(errorMessage);
                         break;
@@ -115,6 +117,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
                     errorJson.put("error", "User cancelled.");
                 } catch (JSONException ignore) {
                 }
+                Utility.pushEvent("user_abort_connection_error");
                 onVerificationResult(
                         Activity.RESULT_CANCELED, errorJson
                 );

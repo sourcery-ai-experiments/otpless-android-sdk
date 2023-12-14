@@ -169,7 +169,7 @@ public class OtplessWebView extends WebView {
         public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
             super.onReceivedError(view, errorCode, description, failingUrl);
             if (failingUrl != null && failingUrl.equals(mLoadingUrl)) {
-                final String errorMessage = "Unable to connect." + "\nPlease retry.";
+                final String errorMessage = "Connection error: " + description;
                 changeLoadingStatus(LoadingStatus.Failed, errorMessage);
             }
         }
