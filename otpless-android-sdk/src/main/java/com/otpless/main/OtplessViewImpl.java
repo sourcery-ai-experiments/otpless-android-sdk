@@ -63,6 +63,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     private boolean isLoginPageEnabled = false;
     private boolean backSubscription = true;
+    private boolean isNoInternetViewVisible = true;
 
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
 
@@ -457,6 +458,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     @Override
     public void onConnectionChange(NetworkStatusData statusData) {
+        if (!this.isNoInternetViewVisible) return;
         final OtplessContainerView containerView = wContainer.get();
         if (containerView == null) return;
         activity.runOnUiThread(() -> {
@@ -470,6 +472,11 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
                 this.eventCallback.onInternetError();
             }
         });
+    }
+
+    @Override
+    public void setNoInternetViewVisibility(boolean isVisible) {
+        this.isNoInternetViewVisible = isVisible;
     }
 
     @Override

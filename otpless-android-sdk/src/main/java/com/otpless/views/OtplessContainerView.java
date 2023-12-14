@@ -181,4 +181,8 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
             this.otplessLoaderView.setConfiguration(extras);
         }
     }
+
+    public void setNoInternetViewConfiguration() {
+
+    }
 }
