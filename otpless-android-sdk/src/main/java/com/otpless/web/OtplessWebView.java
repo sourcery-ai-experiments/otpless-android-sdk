@@ -95,7 +95,7 @@ public class OtplessWebView extends WebView {
         if (url == null) return;
         mLoadingUrl = url;
         changeLoadingStatus(LoadingStatus.InProgress, null);
-        cre
+        clearCache(true);
         loadUrl(url);
     }
 
