@@ -2,16 +2,12 @@ package com.otpless.otplesssample;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.CheckBox;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.otpless.dto.OtplessResponse;
-import com.otpless.main.OtplessEventCallback;
-import com.otpless.main.OtplessEventCode;
-import com.otpless.main.OtplessEventData;
 import com.otpless.main.OtplessManager;
 import com.otpless.main.OtplessView;
 
@@ -25,14 +21,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         // copy this code in onCreate of your Login Activity
-
         otplessView = OtplessManager.getInstance().getOtplessView(this);
 //        otplessView.showOtplessLoginPage(this::onOtplessCallback);
         otplessView.setCallback(this::onOtplessCallback, null, true);
         findViewById(R.id.otpless_btn).setOnClickListener(v -> {
             otplessView.showOtplessLoginPage(this::onOtplessCallback);
         });
-
         findViewById(R.id.sign_in_complete).setOnClickListener(v -> {
             otplessView.onSignInCompleted();
         });

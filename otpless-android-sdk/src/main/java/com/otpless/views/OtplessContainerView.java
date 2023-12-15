@@ -2,6 +2,8 @@ package com.otpless.views;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -9,6 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.webkit.WebViewClient;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -17,9 +21,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.otpless.R;
-import com.otpless.main.OtplessManager;
+import com.otpless.main.OtplessEventCode;
+import com.otpless.main.OtplessEventData;
 import com.otpless.main.OtplessViewContract;
 import com.otpless.main.WebActivityContract;
+import com.otpless.utils.Utility;
 import com.otpless.web.LoadingStatus;
 import com.otpless.web.NativeWebManager;
 import com.otpless.web.OtplessWebView;
@@ -31,13 +37,22 @@ import org.json.JSONObject;
 public class OtplessContainerView extends FrameLayout implements WebActivityContract {
 
     private FrameLayout parentVg;
-    private ProgressBar progressBar;
     private OtplessWebView webView;
-
     private NativeWebManager webManager;
 
     private OtplessViewContract viewContract;
-    private TextView networkTv;
+
+    public boolean isToShowLoader = true;
+    public boolean isToShowRetry = true;
+    @Nullable
+    private JSONObject mColorConfig;
+
+    //region otpless loader properties
+    private TextView mInfoTv, mCloseTv;
+    private ProgressBar mOtplessProgress;
+    private Button mRetryButton;
+    private FrameLayout mLoaderContainerFl;
+    //endregion
 
     public OtplessContainerView(@NonNull Context context) {
         super(context);
@@ -64,9 +79,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         addView(view);
         // assigning all the view
         parentVg = view.findViewById(R.id.otpless_parent_vg);
-        progressBar = view.findViewById(R.id.otpless_progress_bar);
         OtplessWebViewWrapper webViewWrapper = view.findViewById(R.id.otpless_web_wrapper);
-        networkTv = view.findViewById(R.id.otpless_no_internet_tv);
         webView = webViewWrapper.getWebView();
         if (webView == null) {
             final JSONObject errorJson = new JSONObject();
@@ -81,17 +94,106 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         }
         final Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.otpless_slide_up_anim);
         parentVg.startAnimation(animation);
-        if (OtplessManager.getInstance().isToShowPageLoader()) {
-            webView.pageLoadStatusCallback = (loadingStatus -> {
-                if (loadingStatus == LoadingStatus.InProgress) {
-                    progressBar.setVisibility(View.VISIBLE);
-                } else {
-                    progressBar.setVisibility(View.GONE);
-                }
-            });
-        }
+        //region setting page loader related configuration
+        mLoaderContainerFl = view.findViewById(R.id.otpless_loader_container_fl);
+        mCloseTv = view.findViewById(R.id.otpless_close_tv);
+        mInfoTv = view.findViewById(R.id.otpless_info_tv);
+        mOtplessProgress = view.findViewById(R.id.otpless_progress_bar);
+        mRetryButton = view.findViewById(R.id.otpless_retry_btn);
+
+        mCloseTv.setOnClickListener(v -> onOtplessLoaderEvent(OtplessLoaderEvent.CLOSE));
+        mRetryButton.setOnClickListener(v -> onOtplessLoaderEvent(OtplessLoaderEvent.RETRY));
+        //endregion
+        webView.pageLoadStatusCallback = (loadingStatus -> {
+            switch (loadingStatus.getLoadingStatus()) {
+                case InProgress:
+                case Started:
+                    if (!isToShowLoader) return;
+                    showLoader();
+                    break;
+                case Failed:
+                    if (loadingStatus.getLoadingStatus() == LoadingStatus.Failed) {
+                        //region send event because of error
+                        final int errorCode = loadingStatus.getErrorCode();
+                        if (errorCode == WebViewClient.ERROR_CONNECT || errorCode == WebViewClient.ERROR_TIMEOUT ||
+                                errorCode == WebViewClient.ERROR_HOST_LOOKUP || errorCode == WebViewClient.ERROR_BAD_URL ||
+                                errorCode == WebViewClient.ERROR_UNKNOWN) {
+                            if (webManager != null && webManager.getNativeWebListener() != null) {
+                                final JSONObject jsonObject = new JSONObject();
+                                try {
+                                    jsonObject.put("errorCode", loadingStatus.getErrorCode());
+                                    jsonObject.put("description", loadingStatus.getDescription());
+                                } catch (JSONException ignore) {
+                                }
+                                final OtplessEventData eventData = new OtplessEventData(
+                                        OtplessEventCode.NO_INTERNET, jsonObject
+                                );
+                                webManager.getNativeWebListener().onOtplessEvent(
+                                        eventData
+                                );
+                            }
+                        }
+                        //endregion
+                    }
+                    if (!isToShowRetry) {
+                        hideLoader();
+                        break;
+                    }
+                    String errorMessage = loadingStatus.getMessage();
+                    if (errorMessage == null) {
+                        // shield case
+                        errorMessage = "Connection error : Failed to connect";
+                    }
+                    showRetry(errorMessage);
+                    break;
+                case Success:
+                    if (!isToShowLoader) return;
+                    hideLoader();
+            }
+        });
         webManager = new NativeWebManager((Activity) getContext(), this.webView, this);
         this.webView.attachNativeWebManager(webManager);
+    }
+
+    private void onOtplessLoaderEvent(final OtplessLoaderEvent event) {
+        switch (event) {
+            case CLOSE:
+                final JSONObject errorJson = new JSONObject();
+                try {
+                    errorJson.put("error", "User cancelled.");
+                } catch (JSONException ignore) {
+                }
+                Utility.pushEvent("user_abort_connection_error");
+                onVerificationResult(
+                        Activity.RESULT_CANCELED, errorJson
+                );
+                break;
+            case RETRY:
+                this.webView.loadWebUrl(this.webView.getLoadedUrl());
+        }
+    }
+
+    private void showLoader() {
+        // only progress bar will be visible rest view content will be hidden
+        this.mLoaderContainerFl.setVisibility(View.VISIBLE);
+        this.mOtplessProgress.setVisibility(View.VISIBLE);
+        this.mInfoTv.setVisibility(View.GONE);
+        this.mRetryButton.setVisibility(View.GONE);
+        this.mCloseTv.setVisibility(View.GONE);
+    }
+
+    private void hideLoader() {
+        this.mLoaderContainerFl.setVisibility(View.GONE);
+    }
+
+    private void showRetry(final String message) {
+        // every item will be visible apart from progress bar
+        this.mLoaderContainerFl.setVisibility(View.VISIBLE);
+        this.mInfoTv.setVisibility(View.VISIBLE);
+        this.mInfoTv.setText(message);
+        this.mRetryButton.setVisibility(View.VISIBLE);
+        this.mOtplessProgress.setVisibility(View.GONE);
+        this.mCloseTv.setVisibility(View.VISIBLE);
     }
 
     public NativeWebManager getWebManager() {
@@ -133,16 +235,54 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         this.viewContract = viewContract;
     }
 
-    public void showNoNetwork(final String error) {
-        if (networkTv != null) {
-            networkTv.setVisibility(View.VISIBLE);
-            networkTv.setText(error);
-        }
-    }
-
-    public void hideNoNetwork() {
-        if (networkTv != null) {
-            networkTv.setVisibility(View.GONE);
+    public void setUiConfiguration(final JSONObject extras) {
+        if (extras == null) return;
+        try {
+            mColorConfig = extras.getJSONObject("params");
+            ColorUtils.parseColor(this.mColorConfig.optString("primaryColor"), (primaryColor) -> {
+                //region ==== creating color state list
+                int[][] states = new int[][]{
+                        new int[]{android.R.attr.state_enabled}, // enabled
+                        new int[]{-android.R.attr.state_enabled}, // disabled
+                        new int[]{android.R.attr.state_pressed}  // pressed
+                };
+                int[] colors = new int[]{
+                        primaryColor,
+                        primaryColor,
+                        primaryColor
+                };
+                final ColorStateList colorStateList = new ColorStateList(states, colors);
+                //endregion
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    this.mRetryButton.setBackgroundTintList(colorStateList);
+                } else {
+                    this.mRetryButton.setBackgroundColor(primaryColor);
+                }
+            });
+            // parse close button text color
+            ColorUtils.parseColor(this.mColorConfig.optString("closeButtonColor"), (closeButtonColor) -> {
+                this.mCloseTv.setTextColor(closeButtonColor);
+            });
+            // parse loader color and set to progress bar
+            ColorUtils.parseColor(this.mColorConfig.optString("loaderColor"), (loaderColor) -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    mOtplessProgress.setIndeterminateTintList(ColorStateList.valueOf(loaderColor));
+                }
+            });
+            // parse text color and set it info text and retry button text
+            ColorUtils.parseColor(this.mColorConfig.optString("textColor"), (textColor) -> {
+                this.mInfoTv.setTextColor(textColor);
+                this.mRetryButton.setTextColor(textColor);
+            });
+            // checking parsing for alpha for loader background
+            final String alphaString = this.mColorConfig.optString("loaderAlpha");
+            if (!alphaString.isEmpty()) {
+                try {
+                    final float alpha = Float.parseFloat(alphaString);
+                    mLoaderContainerFl.setAlpha(alpha);
+                } catch (Exception ignore){}
+            }
+        } catch (JSONException ignore) {
         }
     }
 }

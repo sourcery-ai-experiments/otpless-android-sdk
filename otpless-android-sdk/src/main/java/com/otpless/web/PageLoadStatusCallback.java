@@ -2,5 +2,5 @@ package com.otpless.web;
 
 @FunctionalInterface
 public interface PageLoadStatusCallback {
-    void onPageStatusChange(LoadingStatus loadingStatus);
+    void onPageStatusChange(LoadingStatusData loadingStatusData);
 }
