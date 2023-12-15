@@ -60,7 +60,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:indeterminateTint="@color/otpless_primary"
+            android:indeterminateTint="@color/otpless_default_loader"
             android:visibility="visible" />
 
         <TextView

@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
@@ -20,9 +21,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.otpless.R;
+import com.otpless.main.OtplessEventCode;
+import com.otpless.main.OtplessEventData;
 import com.otpless.main.OtplessViewContract;
 import com.otpless.main.WebActivityContract;
 import com.otpless.utils.Utility;
+import com.otpless.web.LoadingStatus;
 import com.otpless.web.NativeWebManager;
 import com.otpless.web.OtplessWebView;
 import com.otpless.web.OtplessWebViewWrapper;
@@ -101,13 +105,36 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         mRetryButton.setOnClickListener(v -> onOtplessLoaderEvent(OtplessLoaderEvent.RETRY));
         //endregion
         webView.pageLoadStatusCallback = (loadingStatus -> {
-            if (!isToShowLoader) return;
             switch (loadingStatus.getLoadingStatus()) {
                 case InProgress:
                 case Started:
+                    if (!isToShowLoader) return;
                     showLoader();
                     break;
                 case Failed:
+                    if (loadingStatus.getLoadingStatus() == LoadingStatus.Failed) {
+                        //region send event because of error
+                        final int errorCode = loadingStatus.getErrorCode();
+                        if (errorCode == WebViewClient.ERROR_CONNECT || errorCode == WebViewClient.ERROR_TIMEOUT ||
+                                errorCode == WebViewClient.ERROR_HOST_LOOKUP || errorCode == WebViewClient.ERROR_BAD_URL ||
+                                errorCode == WebViewClient.ERROR_UNKNOWN) {
+                            if (webManager != null && webManager.getNativeWebListener() != null) {
+                                final JSONObject jsonObject = new JSONObject();
+                                try {
+                                    jsonObject.put("errorCode", loadingStatus.getErrorCode());
+                                    jsonObject.put("description", loadingStatus.getDescription());
+                                } catch (JSONException ignore) {
+                                }
+                                final OtplessEventData eventData = new OtplessEventData(
+                                        OtplessEventCode.NO_INTERNET, jsonObject
+                                );
+                                webManager.getNativeWebListener().onOtplessEvent(
+                                        eventData
+                                );
+                            }
+                        }
+                        //endregion
+                    }
                     if (!isToShowRetry) {
                         hideLoader();
                         break;
@@ -120,6 +147,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
                     showRetry(errorMessage);
                     break;
                 case Success:
+                    if (!isToShowLoader) return;
                     hideLoader();
             }
         });

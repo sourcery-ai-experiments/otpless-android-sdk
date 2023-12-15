@@ -421,14 +421,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     @Override
     public void onConnectionChange(NetworkStatusData statusData) {
-        final OtplessContainerView containerView = wContainer.get();
-        if (containerView == null) return;
-        activity.runOnUiThread(() -> {
-            // send the event call
-            if (!statusData.isEnabled() && this.eventCallback != null) {
-                this.eventCallback.onInternetError();
-            }
-        });
     }
 
     @Override
