@@ -285,4 +285,11 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         } catch (JSONException ignore) {
         }
     }
+
+    public void changeConfigToHeadless() {
+        ViewGroup.LayoutParams params = this.getLayoutParams();
+        params.height = 1;
+        params.width = 1;
+        this.setLayoutParams(params);
+    }
 }

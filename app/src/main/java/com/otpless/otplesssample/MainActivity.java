@@ -30,6 +30,9 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.sign_in_complete).setOnClickListener(v -> {
             otplessView.onSignInCompleted();
         });
+        findViewById(R.id.headless_sdk_btn).setOnClickListener(v -> {
+            otplessView.startHeadless();
+        });
         otplessView.verifyIntent(getIntent());
     }
 

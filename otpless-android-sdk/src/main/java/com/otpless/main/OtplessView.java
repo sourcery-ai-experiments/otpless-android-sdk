@@ -80,4 +80,8 @@ public interface OtplessView {
     default void setLoaderVisibility(final boolean isVisible) {}
 
     default void setRetryVisibility(final boolean isVisible) {}
+
+    void startHeadless(@NonNull final OtplessRequest request, final OtplessUserDetailCallback callback);
+
+    void startHeadless();
 }

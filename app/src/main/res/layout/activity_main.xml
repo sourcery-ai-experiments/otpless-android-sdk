@@ -43,4 +43,13 @@
         app:layout_constraintStart_toStartOf="@+id/otpless_btn"
         app:layout_constraintTop_toBottomOf="@+id/otpless_btn" />
 
+    <Button
+        android:id="@+id/headless_sdk_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Start Headless SDK"
+        app:layout_constraintEnd_toEndOf="@+id/sign_in_complete"
+        app:layout_constraintTop_toBottomOf="@+id/sign_in_complete" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

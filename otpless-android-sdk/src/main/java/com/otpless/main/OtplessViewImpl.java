@@ -64,6 +64,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private boolean backSubscription = false;
     private boolean isLoaderVisible = true;
     private boolean isRetryVisible = true;
+    private boolean isHeadless = false;
 
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
 
@@ -102,6 +103,20 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     @Override
     public void startOtpless(@NonNull final OtplessRequest request, final OtplessUserDetailCallback callback) {
+        this.extras = request.toJsonObj();
+        this.detailCallback = callback;
+        this.startOtpless();
+    }
+
+    @Override
+    public void startHeadless() {
+        this.isHeadless = true;
+        this.startOtpless();
+    }
+
+    @Override
+    public void startHeadless(@NonNull final OtplessRequest request, final OtplessUserDetailCallback callback) {
+        this.isHeadless = true;
         this.extras = request.toJsonObj();
         this.detailCallback = callback;
         this.startOtpless();
@@ -171,6 +186,9 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         }
         urlToLoad.appendQueryParameter("login_uri", loginUrl);
         urlToLoad.appendQueryParameter("nbbs", String.valueOf(this.backSubscription));
+        if (this.isHeadless) {
+            urlToLoad.appendQueryParameter("isHeadless", String.valueOf(true));
+        }
         return urlToLoad.build().toString();
     }
 
@@ -334,6 +352,9 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         containerView.isToShowLoader = this.isLoaderVisible;
         containerView.isToShowRetry = this.isRetryVisible;
         containerView.setUiConfiguration(extras);
+        if (this.isHeadless) {
+            containerView.changeConfigToHeadless();
+        }
         parent.addView(containerView);
         wContainer = new WeakReference<>(containerView);
         OtplessNetworkManager.getInstance().addListeners(activity, this);
