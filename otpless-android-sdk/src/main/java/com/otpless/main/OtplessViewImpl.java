@@ -15,12 +15,12 @@ import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 
 import com.otpless.R;
+import com.otpless.dto.HeadlessRequestBuilder;
+import com.otpless.dto.HeadlessResponse;
 import com.otpless.dto.OtplessRequest;
 import com.otpless.dto.OtplessResponse;
 import com.otpless.dto.Triple;
 import com.otpless.dto.Tuple;
-import com.otpless.network.ApiCallback;
-import com.otpless.network.ApiManager;
 import com.otpless.network.NetworkStatusData;
 import com.otpless.network.OnConnectionChangeListener;
 import com.otpless.network.OtplessNetworkManager;
@@ -65,6 +65,9 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private boolean isLoaderVisible = true;
     private boolean isRetryVisible = true;
     private boolean isHeadless = false;
+    private HeadlessRequestBuilder headlessRequestBuilder;
+
+    private HeadlessResponseCallback headlessResponseCallback;
 
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
 
@@ -109,16 +112,10 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     }
 
     @Override
-    public void startHeadless() {
+    public void startHeadless(@NonNull final HeadlessRequestBuilder request, final HeadlessResponseCallback callback) {
         this.isHeadless = true;
-        this.startOtpless();
-    }
-
-    @Override
-    public void startHeadless(@NonNull final OtplessRequest request, final OtplessUserDetailCallback callback) {
-        this.isHeadless = true;
-        this.extras = request.toJsonObj();
-        this.detailCallback = callback;
+        this.headlessRequestBuilder = request;
+        this.headlessResponseCallback = callback;
         this.startOtpless();
     }
 
@@ -132,6 +129,16 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private void loadWebView(final String baseUrl, Uri uri) {
         final OtplessContainerView containerView = wContainer.get();
         if (containerView == null || containerView.getWebView() == null) return;
+        if (this.isHeadless) {
+            final Uri.Builder builder = Uri.parse("https://otpless.com/mobile/index.html").buildUpon();
+            builder.appendQueryParameter("isHeadless", String.valueOf(true));
+            if (uri != null) {
+                String code = uri.getQueryParameter("code");
+                this.headlessRequestBuilder.setCode(code);
+            }
+            containerView.getWebView().loadWebUrl(builder.build().toString());
+            return;
+        }
         if (baseUrl == null) {
             String firstLoadingUrl = getFirstLoadingUrl("https://otpless.com/mobile/index.html", extras);
             if (uri == null) {
@@ -186,9 +193,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         }
         urlToLoad.appendQueryParameter("login_uri", loginUrl);
         urlToLoad.appendQueryParameter("nbbs", String.valueOf(this.backSubscription));
-        if (this.isHeadless) {
-            urlToLoad.appendQueryParameter("isHeadless", String.valueOf(true));
-        }
         return urlToLoad.build().toString();
     }
 
@@ -214,6 +218,12 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         this.extras = request.toJsonObj();
         this.detailCallback = callback;
         this.isLoginPageEnabled = isLoginPage;
+    }
+
+    @Override
+    public void setHeadlessCallback(@NonNull final HeadlessRequestBuilder request, final HeadlessResponseCallback callback) {
+        this.headlessRequestBuilder = request;
+        this.headlessResponseCallback = callback;
     }
 
     @Override
@@ -256,7 +266,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     @Override
     public JSONObject getExtraParams() {
-        return this.extras;
+        return this.headlessRequestBuilder.build();
     }
 
     @Override
@@ -266,6 +276,13 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         if (manager == null) return false;
         final OtplessWebView webView = wContainer.get().getWebView();
         if (webView == null) return false;
+        if (this.isHeadless) {
+            final HeadlessResponse response = new HeadlessResponse(
+                    this.headlessRequestBuilder.getRequestType().getRequestName(), null, "User cancelled");
+            this.headlessResponseCallback.onHeadlessResponse(response);
+            removeView();
+            return true;
+        }
         if (this.eventCallback != null && this.backSubscription && this.isLoginPageEnabled) {
             if (manager.getBackSubscription()) {
                 webView.callWebJs("onHardBackPressed");
@@ -309,8 +326,16 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         final OtplessContainerView otplessContainerView = wContainer.get();
         if (otplessContainerView != null && otplessContainerView.getWebView() != null) {
             final OtplessWebView webView = wContainer.get().getWebView();
-            final String loadedUrl = webView.getLoadedUrl();
-            loadWebView(loadedUrl, uri);
+            if (isHeadless) {
+                String code = uri.getQueryParameter("code");
+                headlessRequestBuilder.setCode(code);
+                otplessContainerView.getWebManager().callHeadlessRequestToWeb(
+                        headlessRequestBuilder.build()
+                );
+            } else {
+                final String loadedUrl = webView.getLoadedUrl();
+                loadWebView(loadedUrl, uri);
+            }
         } else {
             // add view if not added
             Log.d(VIEW_TAG_NAME, "adding the view in low memory case.");
@@ -353,7 +378,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         containerView.isToShowRetry = this.isRetryVisible;
         containerView.setUiConfiguration(extras);
         if (this.isHeadless) {
-            containerView.changeConfigToHeadless();
+            containerView.enableHeadlessConfig();
         }
         parent.addView(containerView);
         wContainer = new WeakReference<>(containerView);

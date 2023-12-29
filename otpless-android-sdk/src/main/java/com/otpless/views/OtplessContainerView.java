@@ -44,6 +44,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
 
     public boolean isToShowLoader = true;
     public boolean isToShowRetry = true;
+    public boolean isHeadless = false;
     @Nullable
     private JSONObject mColorConfig;
 
@@ -286,7 +287,8 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         }
     }
 
-    public void changeConfigToHeadless() {
+    public void enableHeadlessConfig() {
+        this.isHeadless = true;
         ViewGroup.LayoutParams params = this.getLayoutParams();
         params.height = 1;
         params.width = 1;

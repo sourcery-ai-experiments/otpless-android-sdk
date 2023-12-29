@@ -4,9 +4,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.otpless.dto.HeadlessRequestBuilder;
+import com.otpless.dto.HeadlessRequestType;
+import com.otpless.dto.HeadlessResponse;
+import com.otpless.dto.OtplessChannelType;
 import com.otpless.dto.OtplessResponse;
 import com.otpless.main.OtplessManager;
 import com.otpless.main.OtplessView;
@@ -30,8 +35,14 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.sign_in_complete).setOnClickListener(v -> {
             otplessView.onSignInCompleted();
         });
+
+        final HeadlessRequestBuilder request = new HeadlessRequestBuilder()
+                .setRequestType(HeadlessRequestType.SSO)
+                .setPhoneNumber("917982893748")
+                .setChannel(OtplessChannelType.WHATSAPP);
+        otplessView.setHeadlessCallback(request, this::onHeadlessCallback);
         findViewById(R.id.headless_sdk_btn).setOnClickListener(v -> {
-            otplessView.startHeadless();
+            otplessView.startHeadless(request, this::onHeadlessCallback);
         });
         otplessView.verifyIntent(getIntent());
     }
@@ -40,6 +51,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         otplessView.verifyIntent(intent);
+    }
+
+    private void onHeadlessCallback(@NonNull final HeadlessResponse response) {
+        String message;
+        if (response.getError() == null) {
+            message = response.getData().toString();
+        } else {
+            message = response.getError();
+        }
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
     private void onOtplessCallback(OtplessResponse response) {

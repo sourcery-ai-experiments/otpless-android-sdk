@@ -4,6 +4,7 @@ import android.content.Intent;
 
 import androidx.annotation.NonNull;
 
+import com.otpless.dto.HeadlessRequestBuilder;
 import com.otpless.dto.OtplessRequest;
 import com.otpless.views.FabButtonAlignment;
 import com.otpless.views.OtplessUserDetailCallback;
@@ -81,7 +82,7 @@ public interface OtplessView {
 
     default void setRetryVisibility(final boolean isVisible) {}
 
-    void startHeadless(@NonNull final OtplessRequest request, final OtplessUserDetailCallback callback);
+    void startHeadless(@NonNull final HeadlessRequestBuilder request, final HeadlessResponseCallback callback);
 
-    void startHeadless();
+    void setHeadlessCallback(@NonNull final HeadlessRequestBuilder request, final HeadlessResponseCallback callback);
 }

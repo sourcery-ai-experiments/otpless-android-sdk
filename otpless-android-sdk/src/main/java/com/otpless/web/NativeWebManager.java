@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.otpless.BuildConfig;
+import com.otpless.dto.HeadlessResponse;
 import com.otpless.dto.Triple;
 import com.otpless.dto.Tuple;
 import com.otpless.main.NativeWebListener;
@@ -280,6 +281,34 @@ public class NativeWebManager implements OtplessWebListener {
         });
     }
 
+    // key 20
+    @Override
+    public void sendHeadlessRequest() {
+        final JSONObject extras = contract.getExtraParams();
+        if (extras == null) return;
+        callHeadlessRequestToWeb(extras);
+    }
+
+    public void callHeadlessRequestToWeb(JSONObject json) {
+        mWebView.callWebJs("headlessRequest", json.toString());
+    }
+
+    // key 21
+    @Override
+    public void sendHeadlessResponse(@NonNull JSONObject response) {
+        HeadlessResponse headlessResponse;
+        final String request = response.optString("request");
+        final String error = response.optString("error");
+        final JSONObject resp = response.optJSONObject("response");
+        // success case
+        if (error.isEmpty()) {
+            headlessResponse = new HeadlessResponse(request, resp, null);
+        } else {
+            headlessResponse = new HeadlessResponse(request, null, error);
+        }
+        // todo send the headless response
+    }
+
     public void onPhoneNumberSelectionResult(final Tuple<String, Exception> data) {
         if (data.getSecond() == null) {
             mWebView.callWebJs("onPhoneNumberSelectionSuccess", data.getFirst());
@@ -291,4 +320,6 @@ public class NativeWebManager implements OtplessWebListener {
     public NativeWebListener getNativeWebListener() {
         return nativeWebListener;
     }
+
+
 }

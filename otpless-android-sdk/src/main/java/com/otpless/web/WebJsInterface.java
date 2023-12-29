@@ -145,6 +145,15 @@ public class WebJsInterface {
                 case 17:
                     this.mListener.phoneNumberSelection();
                     break;
+                case 20:
+                    this.mListener.sendHeadlessRequest();
+                    break;
+                case 21:
+                    final JSONObject data = getJson(jsonObject, "data");
+                    if (data == null) return;
+                    this.mListener.sendHeadlessResponse(data);
+                    break;
+
             }
         } catch (JSONException e) {
             e.printStackTrace();
