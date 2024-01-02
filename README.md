@@ -3,7 +3,7 @@
   <img src="https://github.com/otpless-tech/otpless-android-sdk/blob/main/otpless.svg" height="20"/>
 </p>
 <p align="center">
-  <img src="https://github.com/otpless-tech/otpless-android-sdk/blob/main/otplessfloater.svg" height="200"/>
+  <img src="https://github.com/otpless-tech/otpless-android-sdk/blob/main/loginPage.png" height="400"/>
 </p>
 
 # OTPLESS android SDK
