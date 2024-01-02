@@ -3,25 +3,24 @@ package com.otpless.web;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.ViewGroup;
 
+import androidx.activity.result.IntentSenderRequest;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest;
+import com.google.android.gms.auth.api.identity.Identity;
 import com.otpless.BuildConfig;
 import com.otpless.dto.Triple;
 import com.otpless.dto.Tuple;
 import com.otpless.main.NativeWebListener;
-import com.otpless.main.OtplessEventCode;
-import com.otpless.main.OtplessEventData;
 import com.otpless.main.WebActivityContract;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
@@ -273,10 +272,24 @@ public class NativeWebManager implements OtplessWebListener {
     @Override
     public void phoneNumberSelection() {
         mActivity.runOnUiThread(() -> {
-            final Tuple<Boolean, IntentSender.SendIntentException> result = Utility.openPhoneNumberSelection(mActivity);
-            if (!result.getFirst()) {
-                mWebView.callWebJs("onPhoneNumberSelectionError", result.getSecond().getMessage());
+            if (nativeWebListener != null && nativeWebListener.getPhoneNumberHintLauncher() != null) {
+                final GetPhoneNumberHintIntentRequest request = GetPhoneNumberHintIntentRequest.builder().build();
+                Identity.getSignInClient(this.mActivity)
+                        .getPhoneNumberHintIntent(request)
+                        .addOnSuccessListener(result -> {
+                            try {
+                                final IntentSenderRequest senderRequest = new IntentSenderRequest.Builder(result.getIntentSender()).build();
+                                nativeWebListener.getPhoneNumberHintLauncher().launch(senderRequest);
+                            } catch (Exception e) {
+                                onPhoneNumberSelectionResult(new Tuple<>(null, e));
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            onPhoneNumberSelectionResult(new Tuple<>(null, e));
+                        });
+                return;
             }
+            onPhoneNumberSelectionResult(new Tuple<>(null, new Exception("register callback is not added")));
         });
     }
 
@@ -284,7 +297,11 @@ public class NativeWebManager implements OtplessWebListener {
         if (data.getSecond() == null) {
             mWebView.callWebJs("onPhoneNumberSelectionSuccess", data.getFirst());
         } else {
-            mWebView.callWebJs("onPhoneNumberSelectionError", data.getSecond());
+            String reason = data.getSecond().getMessage();
+            if (reason == null) {
+                reason = "Failed with exception with no reason.";
+            }
+            mWebView.callWebJs("onPhoneNumberSelectionError", reason);
         }
     }
 

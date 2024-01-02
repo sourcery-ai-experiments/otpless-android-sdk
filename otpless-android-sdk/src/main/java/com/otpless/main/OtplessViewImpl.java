@@ -12,15 +12,19 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.FrameLayout;
 
+import androidx.activity.ComponentActivity;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.google.android.gms.auth.api.identity.Identity;
 import com.otpless.R;
 import com.otpless.dto.OtplessRequest;
 import com.otpless.dto.OtplessResponse;
 import com.otpless.dto.Triple;
 import com.otpless.dto.Tuple;
-import com.otpless.network.ApiCallback;
-import com.otpless.network.ApiManager;
 import com.otpless.network.NetworkStatusData;
 import com.otpless.network.OnConnectionChangeListener;
 import com.otpless.network.OtplessNetworkManager;
@@ -68,6 +72,8 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
 
     OtplessViewRemovalNotifier viewRemovalNotifier = null;
+
+    private ActivityResultLauncher<IntentSenderRequest> phoneNumberHintIntentResultLauncher = null;
 
     OtplessViewImpl(final Activity activity) {
         this.activity = activity;
@@ -440,6 +446,11 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     }
 
     @Override
+    public @Nullable ActivityResultLauncher<IntentSenderRequest> getPhoneNumberHintLauncher() {
+        return this.phoneNumberHintIntentResultLauncher;
+    }
+
+    @Override
     public void setFabConfig(final FabButtonAlignment alignment, final int sideMargin, final int bottomMargin) {
         mAlignment = alignment;
         switch (alignment) {
@@ -580,15 +591,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, final Intent intent) {
-        final OtplessContainerView containerView = wContainer.get();
-        if (containerView == null || containerView.getWebManager() == null || containerView.getWebView() == null) return;
-        if (requestCode != Utility.PHONE_SELECTION_REQUEST_CODE || resultCode != Activity.RESULT_OK || intent == null) return;
-        final Tuple<String, Exception> parseData = Utility.parsePhoneNumberSelectionIntent(intent);
-        containerView.getWebManager().onPhoneNumberSelectionResult(parseData);
-    }
-
-    @Override
     public void setLoaderVisibility(boolean isVisible) {
         this.isLoaderVisible = isVisible;
     }
@@ -596,5 +598,31 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     @Override
     public void setRetryVisibility(boolean isVisible) {
         this.isRetryVisible = isVisible;
+    }
+
+    void registerPhoneHintForResult() {
+        if (phoneNumberHintIntentResultLauncher != null) return;
+        if (activity instanceof ComponentActivity) {
+            try {
+                phoneNumberHintIntentResultLauncher =
+                        ((ComponentActivity) activity).registerForActivityResult(
+                                new ActivityResultContracts.StartIntentSenderForResult(), result -> {
+                                    if (wContainer.get() != null && wContainer.get().getWebManager() != null) {
+                                        final NativeWebManager manager = wContainer.get().getWebManager();
+                                        try {
+                                            String phoneNumber = Identity.getSignInClient(activity).getPhoneNumberFromIntent(result.getData());
+                                            manager.onPhoneNumberSelectionResult(
+                                                    new Tuple<>(phoneNumber, null)
+                                            );
+                                        } catch (Exception exception) {
+                                            manager.onPhoneNumberSelectionResult(
+                                                    new Tuple<>(null, exception)
+                                            );
+                                        }
+                                    }
+                                });
+            } catch (Throwable ignore) {
+            }
+        }
     }
 }
