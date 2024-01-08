@@ -2,6 +2,8 @@ package com.otpless.otplesssample;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.EditText;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,30 +23,66 @@ public class MainActivity extends AppCompatActivity {
 
     OtplessView otplessView;
 
+    private HeadlessRequestType headlessRequestType = HeadlessRequestType.OTPLINK;
+    private OtplessChannelType channelType = OtplessChannelType.WHATSAPP;
+    private EditText inputEditText;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        initTestingView();
         // copy this code in onCreate of your Login Activity
         otplessView = OtplessManager.getInstance().getOtplessView(this);
-//        otplessView.showOtplessLoginPage(this::onOtplessCallback);
-        otplessView.setCallback(this::onOtplessCallback, null, true);
-        findViewById(R.id.otpless_btn).setOnClickListener(v -> {
-            otplessView.showOtplessLoginPage(this::onOtplessCallback);
-        });
-        findViewById(R.id.sign_in_complete).setOnClickListener(v -> {
-            otplessView.onSignInCompleted();
-        });
 
-        final HeadlessRequestBuilder request = new HeadlessRequestBuilder()
-                .setRequestType(HeadlessRequestType.SSO)
-                .setPhoneNumber("917982893748")
-                .setChannel(OtplessChannelType.WHATSAPP);
-        otplessView.setHeadlessCallback(request, this::onHeadlessCallback);
         findViewById(R.id.headless_sdk_btn).setOnClickListener(v -> {
-            otplessView.startHeadless(request, this::onHeadlessCallback);
+            otplessView.startHeadless(getHeadlessRequest(), this::onHeadlessCallback);
         });
         otplessView.verifyIntent(getIntent());
+    }
+
+    private HeadlessRequestBuilder getHeadlessRequest() {
+        final HeadlessRequestBuilder request = new HeadlessRequestBuilder()
+                .setRequestType(headlessRequestType)
+                .setChannel(channelType);
+        final String input = inputEditText.getText().toString();
+        try {
+            // parse phone number
+            Long.parseLong(input);
+            request.setPhoneNumber(input);
+        } catch (Exception ex) {
+            request.setEmail(input);
+        }
+        return request;
+    }
+
+    private void initTestingView() {
+        RadioGroup requestRadioGroup = findViewById(R.id.request_type_rg);
+        requestRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            switch (checkedId) {
+                case R.id.otplink_rb:
+                    headlessRequestType = HeadlessRequestType.OTPLINK;
+                    break;
+                case R.id.sso_rb:
+                    headlessRequestType = HeadlessRequestType.SSO;
+                    break;
+                case R.id.request_otp_rb:
+                    headlessRequestType = HeadlessRequestType.REQUEST_OTP;
+                    break;
+            }
+        });
+        RadioGroup channelRadioGroup = findViewById(R.id.channel_type_rg);
+        channelRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            switch (checkedId) {
+                case R.id.whatsapp_rb:
+                    channelType = OtplessChannelType.WHATSAPP;
+                    break;
+                case R.id.gmail_rb:
+                    channelType = OtplessChannelType.GMAIL;
+                    break;
+            }
+        });
+        inputEditText = findViewById(R.id.input_text_layout);
     }
 
     @Override

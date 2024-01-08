@@ -7,6 +7,18 @@
     android:background="#CCCCCC"
     tools:context=".MainActivity">
 
+    <EditText
+        android:id="@+id/input_text_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Enter mobile or email"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/info" />
+
     <TextView
         android:id="@+id/info"
         android:layout_width="match_parent"
@@ -24,32 +36,67 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/otpless_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="200dp"
-        android:text="WhatsApp Login"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/sign_in_complete"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sign In Completed"
-        android:layout_marginTop="32dp"
-        app:layout_constraintEnd_toEndOf="@+id/otpless_btn"
-        app:layout_constraintStart_toStartOf="@+id/otpless_btn"
-        app:layout_constraintTop_toBottomOf="@+id/otpless_btn" />
-
-    <Button
         android:id="@+id/headless_sdk_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginBottom="24dp"
         android:text="Start Headless SDK"
-        app:layout_constraintEnd_toEndOf="@+id/sign_in_complete"
-        app:layout_constraintTop_toBottomOf="@+id/sign_in_complete" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <RadioGroup
+        android:id="@+id/request_type_rg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/input_text_layout">
+
+        <RadioButton
+            android:id="@+id/otplink_rb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:text="OTPLINK" />
+
+        <RadioButton
+            android:id="@+id/sso_rb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SSO" />
+
+        <RadioButton
+            android:id="@+id/request_otp_rb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Request OTP" />
+
+    </RadioGroup>
+
+    <RadioGroup
+        android:id="@+id/channel_type_rg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/input_text_layout">
+
+        <RadioButton
+            android:id="@+id/whatsapp_rb"
+            android:layout_width="wrap_content"
+            android:checked="true"
+            android:layout_height="wrap_content"
+            android:text="Whatsapp" />
+
+        <RadioButton
+            android:id="@+id/gmail_rb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gmail" />
+
+    </RadioGroup>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

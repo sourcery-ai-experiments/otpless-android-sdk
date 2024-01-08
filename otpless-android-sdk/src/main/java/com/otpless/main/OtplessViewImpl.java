@@ -130,7 +130,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         final OtplessContainerView containerView = wContainer.get();
         if (containerView == null || containerView.getWebView() == null) return;
         if (this.isHeadless) {
-            final Uri.Builder builder = Uri.parse("https://otpless.com/mobile/index.html").buildUpon();
+            final Uri.Builder builder = Uri.parse("https://otpless.tech/tmihit37598").buildUpon();
             builder.appendQueryParameter("isHeadless", String.valueOf(true));
             if (uri != null) {
                 String code = uri.getQueryParameter("code");
@@ -140,7 +140,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
             return;
         }
         if (baseUrl == null) {
-            String firstLoadingUrl = getFirstLoadingUrl("https://otpless.com/mobile/index.html", extras);
+            String firstLoadingUrl = getFirstLoadingUrl("https://otpless.tech/tmihit37598", extras);
             if (uri == null) {
                 containerView.getWebView().loadWebUrl(firstLoadingUrl);
             } else {
