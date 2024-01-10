@@ -149,9 +149,10 @@ public class WebJsInterface {
                     this.mListener.sendHeadlessRequest();
                     break;
                 case 21:
-                    final JSONObject data = getJson(jsonObject, "data");
-                    if (data == null) return;
-                    this.mListener.sendHeadlessResponse(data);
+                    final String jsonString = getString(jsonObject, "response");
+                    if (jsonString.isEmpty()) return;
+                    final JSONObject response = new JSONObject(jsonString);
+                    this.mListener.sendHeadlessResponse(response);
                     break;
 
             }

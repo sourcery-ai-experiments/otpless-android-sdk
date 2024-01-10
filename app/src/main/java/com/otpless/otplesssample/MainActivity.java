@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         initTestingView();
         // copy this code in onCreate of your Login Activity
         otplessView = OtplessManager.getInstance().getOtplessView(this);
-
+        otplessView.setHeadlessCallback(getHeadlessRequest(), this::onHeadlessCallback);
         findViewById(R.id.headless_sdk_btn).setOnClickListener(v -> {
             otplessView.startHeadless(getHeadlessRequest(), this::onHeadlessCallback);
         });
@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
                     headlessRequestType = HeadlessRequestType.REQUEST_OTP;
                     break;
             }
+            otplessView.setHeadlessCallback(getHeadlessRequest(), this::onHeadlessCallback);
         });
         RadioGroup channelRadioGroup = findViewById(R.id.channel_type_rg);
         channelRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
@@ -81,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
                     channelType = OtplessChannelType.GMAIL;
                     break;
             }
+            otplessView.setHeadlessCallback(getHeadlessRequest(), this::onHeadlessCallback);
         });
         inputEditText = findViewById(R.id.input_text_layout);
     }

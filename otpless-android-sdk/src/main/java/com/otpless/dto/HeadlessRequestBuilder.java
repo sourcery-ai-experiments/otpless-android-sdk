@@ -41,6 +41,7 @@ public class HeadlessRequestBuilder {
     }
 
     public HeadlessRequestBuilder setCode(String code) {
+        this.requestType = HeadlessRequestType.VERIFY_CODE;
         this.code = code;
         return this;
     }
@@ -65,14 +66,20 @@ public class HeadlessRequestBuilder {
         try {
             requestJson.put("request", this.requestType.getRequestName());
             final JSONObject params = new JSONObject();
-            if (this.phoneNumber != null) params.put("pn", this.phoneNumber);
-            if (this.email != null) params.put("eml", this.email);
-            if (this.otp != null) params.put("otp", this.otp);
-            if (this.code != null) params.put("code", this.code);
-            for (Map.Entry<String, String> entry: this.extraChannelType.entrySet()) {
-                params.put(entry.getKey(), entry.getValue());
+            switch (requestType) {
+                case VERIFY_CODE:
+                    params.put("code", this.code);
+                    break;
+                default:
+                    if (this.phoneNumber != null) params.put("pn", this.phoneNumber);
+                    if (this.email != null) params.put("eml", this.email);
+                    if (this.otp != null) params.put("otp", this.otp);
+                    for (Map.Entry<String, String> entry : this.extraChannelType.entrySet()) {
+                        params.put(entry.getKey(), entry.getValue());
+                    }
+                    if (this.channel != null) params.put("ch", this.channel.getChannelName());
             }
-            if (this.channel != null) params.put("ch", this.channel.getChannelName());
+
             requestJson.put("params", params);
         } catch (JSONException ignore) {
         }

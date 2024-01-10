@@ -306,7 +306,7 @@ public class NativeWebManager implements OtplessWebListener {
         } else {
             headlessResponse = new HeadlessResponse(request, null, error);
         }
-        // todo send the headless response
+        mActivity.runOnUiThread(() -> this.contract.onHeadlessResult(headlessResponse));
     }
 
     public void onPhoneNumberSelectionResult(final Tuple<String, Exception> data) {

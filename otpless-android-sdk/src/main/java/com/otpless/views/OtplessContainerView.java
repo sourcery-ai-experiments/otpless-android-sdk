@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.otpless.R;
+import com.otpless.dto.HeadlessResponse;
 import com.otpless.main.OtplessEventCode;
 import com.otpless.main.OtplessEventData;
 import com.otpless.main.OtplessViewContract;
@@ -293,5 +294,10 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         params.height = 1;
         params.width = 1;
         this.setLayoutParams(params);
+    }
+
+    @Override
+    public void onHeadlessResult(HeadlessResponse response) {
+        if (this.viewContract != null) this.viewContract.onHeadlessResult(response);
     }
 }
