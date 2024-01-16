@@ -101,6 +101,11 @@ public class MainActivity extends AppCompatActivity {
             message = response.getError();
         }
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+
+        if (HeadlessRequestType.VERIFY_CODE.getRequestName().equals(response.getRequest()) ||
+                HeadlessRequestType.VERIFY_OTP.getRequestName().equals(response.getRequest())) {
+            otplessView.closeView();
+        }
     }
 
     private void onOtplessCallback(OtplessResponse response) {
