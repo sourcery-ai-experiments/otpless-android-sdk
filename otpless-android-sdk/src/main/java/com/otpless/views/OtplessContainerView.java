@@ -208,7 +208,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
 
     @Override
     public ViewGroup getParentView() {
-        return this.parentVg;
+        return this;
     }
 
     @Override
@@ -291,8 +291,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
     public void enableHeadlessConfig() {
         this.isHeadless = true;
         ViewGroup.LayoutParams params = this.getLayoutParams();
-        params.height = 1;
-        params.width = 1;
+        params.height = 0;
         this.setLayoutParams(params);
     }
 

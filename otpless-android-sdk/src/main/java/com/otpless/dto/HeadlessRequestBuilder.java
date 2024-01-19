@@ -18,7 +18,7 @@ public class HeadlessRequestBuilder {
     private String code;
     private OtplessChannelType channel;
 
-    private HashMap<String, String> extraChannelType = new HashMap<>();
+    private final HashMap<String, String> extraChannelType = new HashMap<>();
 
     public HeadlessRequestBuilder setRequestType(@NonNull HeadlessRequestType requestType) {
         this.requestType = requestType;
@@ -53,6 +53,11 @@ public class HeadlessRequestBuilder {
 
     public HeadlessRequestBuilder addExtraChannel(@NonNull String key, @NonNull String value) {
         this.extraChannelType.put(key, value);
+        return this;
+    }
+
+    public HeadlessRequestBuilder clearExtraChannel() {
+        this.extraChannelType.clear();
         return this;
     }
 

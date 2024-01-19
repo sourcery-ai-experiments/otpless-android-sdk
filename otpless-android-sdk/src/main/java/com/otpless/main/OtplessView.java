@@ -85,4 +85,6 @@ public interface OtplessView {
     void startHeadless(@NonNull final HeadlessRequestBuilder request, final HeadlessResponseCallback callback);
 
     void setHeadlessCallback(@NonNull final HeadlessRequestBuilder request, final HeadlessResponseCallback callback);
+
+    default void enableOneTap(final boolean isEnable) {};
 }

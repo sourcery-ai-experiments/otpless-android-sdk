@@ -19,6 +19,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/info" />
 
+    <EditText
+        android:id="@+id/otp_et"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:hint="Enter OTP"
+        android:inputType="number"
+        android:maxLength="6"
+        android:maxLines="1"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/input_text_layout" />
+
     <TextView
         android:id="@+id/info"
         android:layout_width="match_parent"
@@ -52,7 +68,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/input_text_layout">
+        app:layout_constraintTop_toBottomOf="@+id/otp_et">
 
         <RadioButton
             android:id="@+id/otplink_rb"
@@ -73,6 +89,17 @@
             android:layout_height="wrap_content"
             android:text="Request OTP" />
 
+        <RadioButton
+            android:id="@+id/resend_otp_rb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Resend OTP" />
+        <RadioButton
+            android:id="@+id/verify_otp_rb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Verify OTP" />
+
     </RadioGroup>
 
     <RadioGroup
@@ -82,7 +109,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/input_text_layout">
+        app:layout_constraintTop_toBottomOf="@+id/otp_et">
 
         <RadioButton
             android:id="@+id/whatsapp_rb"
@@ -96,6 +123,36 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Gmail" />
+
+        <RadioButton
+            android:id="@+id/twitter_rb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Twitter" />
+
+        <RadioButton
+            android:id="@+id/slack_rb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Slack" />
+
+        <RadioButton
+            android:id="@+id/facebook_rb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Facebook" />
+
+        <RadioButton
+            android:id="@+id/linkedin_rb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Linkedin" />
+
+        <RadioButton
+            android:id="@+id/microsoft_rb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Microsoft" />
 
     </RadioGroup>
 
