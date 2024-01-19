@@ -1,7 +1,9 @@
 package com.otpless.main;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.util.Log;
@@ -258,6 +260,12 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
             final OtplessContainerView containerView = wContainer.get();
             if (containerView == null || containerView.getWebView() == null) return;
             final Uri.Builder builder = Uri.parse(getFirstLoadingUrl(BASE_LOADING_URL, null)).buildUpon();
+            final SharedPreferences pref = activity.getPreferences(Context.MODE_PRIVATE);
+            final String plov = pref.getString("plov", "");
+            if (!plov.isEmpty()) {
+                builder.appendQueryParameter("plov", plov);
+            }
+            builder.appendQueryParameter("isHeadless", String.valueOf(true));
             containerView.getWebView().loadWebUrl(builder.build().toString());
         }
     }
