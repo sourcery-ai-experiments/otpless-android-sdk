@@ -239,7 +239,7 @@ public class NativeWebManager implements OtplessWebListener {
             }
 
             @Override
-            public void onError(Exception exception) {
+            public void onError(Throwable exception) {
                 exception.printStackTrace();
             }
         });

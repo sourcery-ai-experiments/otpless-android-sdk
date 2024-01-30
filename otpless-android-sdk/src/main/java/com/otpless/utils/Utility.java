@@ -160,7 +160,7 @@ public class Utility {
             }
 
             @Override
-            public void onError(Exception exception) {
+            public void onError(Throwable exception) {
                 exception.printStackTrace();
             }
         });
