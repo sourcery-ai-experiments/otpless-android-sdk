@@ -16,10 +16,10 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "OTPLESS_VERSION_NAME", "\"" + versionName + "\"")
-        resValue 'string', 'host', 'https://webauthn.otpless.app'
+        resValue 'string', 'host', 'https://otpless.com'
         resValue 'string', 'asset_statements', """
            [{
-             "include": "https://webauthn.otpless.app/.well-known/assetlinks.json"
+             "include": "https://otpless.com/.well-known/assetlinks.json"
            }]
         """
     }

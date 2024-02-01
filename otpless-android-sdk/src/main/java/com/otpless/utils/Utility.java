@@ -254,4 +254,17 @@ public class Utility {
         }
         return result;
     }
+
+    public static void debugLog(final String message) {
+        if (BuildConfig.DEBUG) {
+            Log.d("OTPLESS", message);
+        }
+    }
+
+    public static void debugLog(final Throwable throwable) {
+        if (BuildConfig.DEBUG) {
+            Log.d("OTPLESS", throwable.getMessage());
+            throwable.printStackTrace();
+        }
+    }
 }

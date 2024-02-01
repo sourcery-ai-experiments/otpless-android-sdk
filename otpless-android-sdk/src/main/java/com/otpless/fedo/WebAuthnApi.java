@@ -1,5 +1,6 @@
 package com.otpless.fedo;
 
+import com.otpless.fedo.models.WebAuthnLoginCompleteRequest;
 import com.otpless.fedo.models.WebAuthnLoginInitData;
 import com.otpless.fedo.models.WebAuthnLoginInitRequest;
 import com.otpless.fedo.models.WebAuthnRegistrationCompleteData;
@@ -19,7 +20,7 @@ public interface WebAuthnApi {
             );
 
     @POST("registration/complete")
-    Call<WebAuthnBaseResponse<WebAuthnRegistrationCompleteData>> completeRegistration(
+    Call<WebAuthnRegistrationCompleteData> completeRegistration(
             final @Body WebAuthnRegistrationCompleteRequest request
     );
 
@@ -29,7 +30,7 @@ public interface WebAuthnApi {
             );
 
     @POST("login/complete")
-    Call<WebAuthnBaseResponse<WebAuthnRegistrationCompleteData>> completeLogin(
-            final @Body WebAuthnRegistrationCompleteRequest request
+    Call<WebAuthnRegistrationCompleteData> completeLogin(
+            final @Body WebAuthnBaseResponse<WebAuthnLoginCompleteRequest> request
     );
 }

@@ -4,9 +4,6 @@ import androidx.annotation.NonNull;
 
 import com.google.gson.annotations.SerializedName;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.Serializable;
 
 public class WebAuthnRegistrationInitRequest implements Serializable {
@@ -20,8 +17,8 @@ public class WebAuthnRegistrationInitRequest implements Serializable {
     private final String displayName;
 
     @NonNull
-    @SerializedName("uuid")
-    private final String uuid;
+    @SerializedName("userId")
+    private final String userId;
 
     @NonNull
     @SerializedName("domainName")
@@ -36,7 +33,7 @@ public class WebAuthnRegistrationInitRequest implements Serializable {
                                            @NonNull String uuid, @NonNull String domainName, @NonNull String companyName) {
         this.userName = userName;
         this.displayName = displayName;
-        this.uuid = uuid;
+        this.userId = uuid;
         this.domainName = domainName;
         this.companyName = companyName;
     }
@@ -52,8 +49,8 @@ public class WebAuthnRegistrationInitRequest implements Serializable {
     }
 
     @NonNull
-    public String getUuid() {
-        return uuid;
+    public String getUserId() {
+        return userId;
     }
 
     @NonNull

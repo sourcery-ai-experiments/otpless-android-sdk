@@ -16,6 +16,14 @@ public class WebAuthnBaseResponse<T> implements Serializable {
     @NonNull
     private T data;
 
+    public WebAuthnBaseResponse(@NonNull String requestId, @NonNull T data) {
+        this.requestId = requestId;
+        this.data = data;
+    }
+
+    public WebAuthnBaseResponse() {
+    }
+
     @NonNull
     public String getRequestId() {
         return requestId;

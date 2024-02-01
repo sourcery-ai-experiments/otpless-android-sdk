@@ -6,19 +6,19 @@ import java.io.Serializable;
 
 public class WebAuthnLoginInitRequest implements Serializable {
 
-    @SerializedName("uuid")
-    private final String uuid;
+    @SerializedName("userId")
+    private final String userId;
 
     @SerializedName("domainName")
     private final String domainName;
 
-    public WebAuthnLoginInitRequest(String uuid, String domainName) {
-        this.uuid = uuid;
+    public WebAuthnLoginInitRequest(String userId, String domainName) {
+        this.userId = userId;
         this.domainName = domainName;
     }
 
-    public String getUuid() {
-        return uuid;
+    public String getUserId() {
+        return userId;
     }
 
     public String getDomainName() {

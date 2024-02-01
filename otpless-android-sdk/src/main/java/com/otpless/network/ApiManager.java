@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.otpless.BuildConfig;
 import com.otpless.fedo.WebAuthnApi;
 import com.otpless.fedo.WebAuthnBaseResponse;
+import com.otpless.fedo.models.WebAuthnLoginCompleteRequest;
 import com.otpless.fedo.models.WebAuthnLoginInitData;
 import com.otpless.fedo.models.WebAuthnLoginInitRequest;
 import com.otpless.fedo.models.WebAuthnRegistrationCompleteData;
@@ -113,7 +114,7 @@ public class ApiManager {
     }
 
     public void completeWebAuthnRegistration(final WebAuthnRegistrationCompleteRequest request,
-                                             final ApiCallback<WebAuthnBaseResponse<WebAuthnRegistrationCompleteData>> callback) {
+                                             final ApiCallback<WebAuthnRegistrationCompleteData> callback) {
         webAuthnApi.completeRegistration(request)
                 .enqueue(new WebAuthnApiCallback<>(callback));
     }
@@ -124,8 +125,8 @@ public class ApiManager {
                 .enqueue(new WebAuthnApiCallback<>(callback));
     }
 
-    public void completeWebAuthnLogin(final WebAuthnRegistrationCompleteRequest request,
-                                      final ApiCallback<WebAuthnBaseResponse<WebAuthnRegistrationCompleteData>> callback) {
+    public void completeWebAuthnLogin(final WebAuthnBaseResponse<WebAuthnLoginCompleteRequest> request,
+                                      final ApiCallback<WebAuthnRegistrationCompleteData> callback) {
         webAuthnApi.completeLogin(request)
                 .enqueue(new WebAuthnApiCallback<>(callback));
     }

@@ -9,11 +9,11 @@ public class WebAuthnRegistrationCompleteRequest implements Serializable {
     @SerializedName("requestId")
     private final String requestId;
 
-    @SerializedName("publicKeyCredentialCreationResponse")
-    private final String publicKeyCredentialCreationResponse;
+    @SerializedName("data")
+    private final WebAuthnPublicCredential publicCredential;
 
-    public WebAuthnRegistrationCompleteRequest(String requestId, String publicKeyCredentialCreationResponse) {
+    public WebAuthnRegistrationCompleteRequest(String requestId, WebAuthnPublicCredential publicCredential) {
         this.requestId = requestId;
-        this.publicKeyCredentialCreationResponse = publicKeyCredentialCreationResponse;
+        this.publicCredential = publicCredential;
     }
 }
