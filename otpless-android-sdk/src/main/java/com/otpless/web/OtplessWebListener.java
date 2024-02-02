@@ -36,4 +36,7 @@ public interface OtplessWebListener extends WebLoaderCallback {
 
     //key 18
     void phoneNumberSelection();
+
+    // key 24
+    void sendMerchantEvent(int eventCode, JSONObject eventData);
 }

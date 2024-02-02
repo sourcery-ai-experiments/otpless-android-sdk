@@ -21,6 +21,7 @@ import com.otpless.BuildConfig;
 import com.otpless.dto.Triple;
 import com.otpless.dto.Tuple;
 import com.otpless.main.NativeWebListener;
+import com.otpless.main.OtplessEventData;
 import com.otpless.main.WebActivityContract;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
@@ -311,5 +312,15 @@ public class NativeWebManager implements OtplessWebListener {
 
     public NativeWebListener getNativeWebListener() {
         return nativeWebListener;
+    }
+
+    // key 24 send merchant event
+
+    @Override
+    public void sendMerchantEvent(int eventCode, JSONObject eventData) {
+        if (this.nativeWebListener == null) return;
+        this.nativeWebListener.onOtplessEvent(
+                new OtplessEventData(eventCode, eventData)
+        );
     }
 }

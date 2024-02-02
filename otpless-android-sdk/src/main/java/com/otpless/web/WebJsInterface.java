@@ -149,6 +149,12 @@ public class WebJsInterface {
                 case 18:
                     this.mListener.phoneNumberSelection();
                     break;
+                case 24:
+                    final Integer eventCode = getInt(jsonObject, "eventCode");
+                    if (eventCode == null) return;
+                    final JSONObject evnData = getJson(jsonObject, "eventData");
+                    this.mListener.sendMerchantEvent(eventCode, evnData);
+                    break;
             }
         } catch (JSONException e) {
             e.printStackTrace();
