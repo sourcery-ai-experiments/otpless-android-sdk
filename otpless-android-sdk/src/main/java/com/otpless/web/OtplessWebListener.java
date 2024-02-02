@@ -26,7 +26,7 @@ public interface OtplessWebListener extends WebLoaderCallback {
     void extraParams();
 
     // key 14
-    void closeActivity();
+    void closeActivity(boolean noCallback);
 
     //key 15
     void pushEvent(final JSONObject eventData);

@@ -127,7 +127,11 @@ public class WebJsInterface {
                     this.mListener.extraParams();
                     break;
                 case 14:
-                    this.mListener.closeActivity();
+                    Boolean noCallback = getBoolean(jsonObject, "noCallback");
+                    if (noCallback == null) {
+                        noCallback = false;
+                    }
+                    this.mListener.closeActivity(noCallback);
                     break;
                 case 15:
                     final JSONObject eventData = getJson(jsonObject, "eventData");

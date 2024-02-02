@@ -210,10 +210,14 @@ public class NativeWebManager implements OtplessWebListener {
 
     // key 14
     @Override
-    public void closeActivity() {
-        mActivity.runOnUiThread(() ->
-            contract.onVerificationResult(Activity.RESULT_CANCELED, null)
-        );
+    public void closeActivity(boolean noCallback) {
+        mActivity.runOnUiThread(() -> {
+            if (noCallback) {
+                contract.closeView();
+            } else {
+                contract.onVerificationResult(Activity.RESULT_CANCELED, null);
+            }
+        });
         Utility.pushEvent("user_abort");
     }
 
