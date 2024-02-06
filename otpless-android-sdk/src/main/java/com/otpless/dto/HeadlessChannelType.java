@@ -2,7 +2,7 @@ package com.otpless.dto;
 
 import androidx.annotation.NonNull;
 
-public enum OtplessChannelType {
+public enum HeadlessChannelType {
     WHATSAPP("WHATSAPP"),
     GMAIL("GMAIL"),
     APPLE("APPLE"),
@@ -14,14 +14,14 @@ public enum OtplessChannelType {
     MICROSOFT("MICROSOFT");
 
     @NonNull
-    private final String channelName;
+    private final String channelTypeName;
 
-    private OtplessChannelType(@NonNull String channelName) {
-        this.channelName = channelName;
+    private HeadlessChannelType(@NonNull String channelTypeName) {
+        this.channelTypeName = channelTypeName;
     }
 
     @NonNull
-    public String getChannelName() {
-        return channelName;
+    public String getChannelTypeName() {
+        return channelTypeName;
     }
 }

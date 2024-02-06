@@ -23,8 +23,8 @@ import androidx.annotation.Nullable;
 
 import com.google.android.gms.auth.api.identity.Identity;
 import com.otpless.R;
-import com.otpless.dto.HeadlessRequestBuilder;
-import com.otpless.dto.HeadlessRequestType;
+import com.otpless.dto.HeadlessRequest;
+import com.otpless.dto.HeadlessChannel;
 import com.otpless.dto.HeadlessResponse;
 import com.otpless.dto.OtplessRequest;
 import com.otpless.dto.OtplessResponse;
@@ -53,7 +53,7 @@ import java.util.Queue;
 final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConnectionChangeListener, NativeWebListener {
 
     private static final String VIEW_TAG_NAME = "OtplessView";
-    private static final String BASE_LOADING_URL = "https://otpless.tech/aid/870OD5RME1UBYVDJPKL3";
+    private static final String BASE_LOADING_URL = "https://otpless.tech/appid/870OD5RME1UBYVDJPKL3";
     private final Activity activity;
     private JSONObject extras;
 
@@ -75,7 +75,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private boolean isRetryVisible = true;
     private boolean isHeadless = false;
     private boolean isOneTapEnabled = true;
-    private HeadlessRequestBuilder headlessRequestBuilder;
+    private HeadlessRequest headlessRequest;
 
     private HeadlessResponseCallback headlessResponseCallback;
 
@@ -124,9 +124,9 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     }
 
     @Override
-    public void startHeadless(@NonNull final HeadlessRequestBuilder request, final HeadlessResponseCallback callback) {
+    public void startHeadless(@NonNull final HeadlessRequest request, final HeadlessResponseCallback callback) {
         this.isHeadless = true;
-        this.headlessRequestBuilder = request;
+        this.headlessRequest = request;
         this.headlessResponseCallback = callback;
         this.startOtpless();
     }
@@ -136,7 +136,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         this.isLoginPageEnabled = false;
         addViewIfNotAdded();
         // check for headless case for verify otp
-        if (this.isHeadless && HeadlessRequestType.VERIFY_OTP == headlessRequestBuilder.getRequestType()) {
+        if (this.isHeadless && headlessRequest.hasCodeOrOtp()) {
             // check if url is already loaded
             final OtplessContainerView containerView = wContainer.get();
             if (containerView.getWebView() != null && containerView.getWebView().getLoadedUrl() != null) {
@@ -157,7 +157,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
             builder.appendQueryParameter("isHeadless", String.valueOf(true));
             if (uri != null) {
                 String code = uri.getQueryParameter("code");
-                this.headlessRequestBuilder.setCode(code);
+                this.headlessRequest.setCode(code);
                 // check if url is already loaded call the javascript directly
                 if (containerView.getWebView().getLoadedUrl() != null) {
                     containerView.getWebManager().sendHeadlessRequest();
@@ -249,9 +249,9 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     }
 
     @Override
-    public void setHeadlessCallback(@NonNull final HeadlessRequestBuilder request, final HeadlessResponseCallback callback) {
+    public void setHeadlessCallback(@NonNull final HeadlessRequest request, final HeadlessResponseCallback callback) {
         this.isHeadless = true;
-        this.headlessRequestBuilder = request;
+        this.headlessRequest = request;
         this.headlessResponseCallback = callback;
         // if one tap is enabled load the url here
         if (this.isOneTapEnabled) {
@@ -310,7 +310,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     @Override
     public JSONObject getExtraParams() {
-        return this.headlessRequestBuilder.build();
+        return this.headlessRequest.makeJson();
     }
 
     @Override
@@ -322,7 +322,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         if (webView == null) return false;
         if (this.isHeadless) {
             final HeadlessResponse response = new HeadlessResponse(
-                    this.headlessRequestBuilder.getRequestType().getRequestName(), null, "User cancelled");
+                    this.headlessRequest.getChannel().getChannelName(), null, "User cancelled");
             this.headlessResponseCallback.onHeadlessResponse(response);
             removeView();
             return true;
@@ -703,12 +703,11 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     }
 
     @Override
-    public void onHeadlessResult(HeadlessResponse response) {
+    public void onHeadlessResult(HeadlessResponse response, boolean closeView) {
         if (this.headlessResponseCallback != null) {
             this.headlessResponseCallback.onHeadlessResponse(response);
         }
-        if (HeadlessRequestType.VERIFY_CODE.getRequestName().equals(response.getRequest()) ||
-                HeadlessRequestType.VERIFY_OTP.getRequestName().equals(response.getRequest())) {
+        if (closeView) {
             removeView();
         }
     }

@@ -10,5 +10,5 @@ public interface OtplessViewContract {
 
     JSONObject getExtraParams();
 
-    default void onHeadlessResult(final HeadlessResponse response){}
+    default void onHeadlessResult(final HeadlessResponse response, boolean closeView){}
 }

@@ -41,5 +41,5 @@ public interface OtplessWebListener extends WebLoaderCallback {
     void sendHeadlessRequest();
 
     //key 21
-    void sendHeadlessResponse(@NonNull JSONObject response);
+    void sendHeadlessResponse(@NonNull JSONObject response, boolean closeView);
 }

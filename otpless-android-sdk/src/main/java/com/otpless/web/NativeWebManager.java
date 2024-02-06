@@ -308,7 +308,7 @@ public class NativeWebManager implements OtplessWebListener {
 
     // key 21
     @Override
-    public void sendHeadlessResponse(@NonNull JSONObject response) {
+    public void sendHeadlessResponse(@NonNull JSONObject response, boolean closeView) {
         HeadlessResponse headlessResponse;
         final String request = response.optString("request");
         final String error = response.optString("error");
@@ -319,7 +319,7 @@ public class NativeWebManager implements OtplessWebListener {
         } else {
             headlessResponse = new HeadlessResponse(request, null, error);
         }
-        mActivity.runOnUiThread(() -> this.contract.onHeadlessResult(headlessResponse));
+        mActivity.runOnUiThread(() -> this.contract.onHeadlessResult(headlessResponse, closeView));
     }
 
     public void onPhoneNumberSelectionResult(final Tuple<String, Exception> data) {

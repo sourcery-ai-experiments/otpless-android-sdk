@@ -11,10 +11,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.otpless.dto.HeadlessRequestBuilder;
-import com.otpless.dto.HeadlessRequestType;
+import com.otpless.dto.HeadlessRequest;
+import com.otpless.dto.HeadlessChannel;
 import com.otpless.dto.HeadlessResponse;
-import com.otpless.dto.OtplessChannelType;
+import com.otpless.dto.HeadlessChannelType;
 import com.otpless.dto.OtplessResponse;
 import com.otpless.main.OtplessManager;
 import com.otpless.main.OtplessView;
@@ -24,9 +24,9 @@ public class MainActivity extends AppCompatActivity {
 
     OtplessView otplessView;
 
-    private HeadlessRequestType headlessRequestType = HeadlessRequestType.OTPLINK;
-    private OtplessChannelType channelType = OtplessChannelType.WHATSAPP;
     private EditText inputEditText, otpEditText;
+
+    private HeadlessChannelType channelType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,11 +42,10 @@ public class MainActivity extends AppCompatActivity {
         otplessView.verifyIntent(getIntent());
     }
 
-    private HeadlessRequestBuilder getHeadlessRequest() {
-        final HeadlessRequestBuilder request = new HeadlessRequestBuilder()
-                .setRequestType(headlessRequestType)
-                .setChannel(channelType);
+    private HeadlessRequest getHeadlessRequest() {
+        final HeadlessRequest request = new HeadlessRequest();
         final String input = inputEditText.getText().toString();
+
         if (!input.isEmpty()) {
             try {
                 // parse phone number
@@ -55,95 +54,41 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception ex) {
                 request.setEmail(input);
             }
+        } else {
+            request.setChannelType(this.channelType);
         }
-        if (headlessRequestType == HeadlessRequestType.VERIFY_OTP) {
-            final String otp = otpEditText.getText().toString();
-            request.setOtp(otp);
-        }
+        final String otp = otpEditText.getText().toString();
+        if (!otp.isEmpty()) request.setOtp(otp);
+
         return request;
     }
 
-//    private HeadlessRequestBuilder gt() {
-//
-//        // request for sso on whatsapp
-//        final HeadlessRequestBuilder request1 = new HeadlessRequestBuilder()
-//                .setRequestType(HeadlessRequestType.SSO)
-//                .setChannel(OtplessChannelType.WHATSAPP)
-//                .setPhoneNumber("9876987654");
-//
-//        // request for sso on gmail
-//        final HeadlessRequestBuilder request2 = new HeadlessRequestBuilder()
-//                .setRequestType(HeadlessRequestType.SSO)
-//                .setChannel(OtplessChannelType.GMAIL)
-//                .setEmail("useremail@gmail.com");
-//
-//        // request for request otp
-//        final HeadlessRequestBuilder request3 = new HeadlessRequestBuilder()
-//                .setRequestType(HeadlessRequestType.REQUEST_OTP)
-//                .setChannel(OtplessChannelType.WHATSAPP)
-//                .setPhoneNumber("9876987654");
-//
-//        // request for verify otp
-//        final HeadlessRequestBuilder request4 = new HeadlessRequestBuilder()
-//                .setRequestType(HeadlessRequestType.REQUEST_OTP)
-//                .setChannel(OtplessChannelType.WHATSAPP)
-//                .setPhoneNumber("9876987654")
-//                .setOtp("232323");
-//
-//        return request
-//    }
 
     private void initTestingView() {
-        RadioGroup requestRadioGroup = findViewById(R.id.request_type_rg);
         otpEditText = findViewById(R.id.otp_et);
-        requestRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            switch (checkedId) {
-                case R.id.otplink_rb:
-                    headlessRequestType = HeadlessRequestType.OTPLINK;
-                    break;
-                case R.id.sso_rb:
-                    headlessRequestType = HeadlessRequestType.SSO;
-                    break;
-                case R.id.request_otp_rb:
-                    headlessRequestType = HeadlessRequestType.REQUEST_OTP;
-                    break;
-                case R.id.resend_otp_rb:
-                    headlessRequestType = HeadlessRequestType.RESEND_OTP;
-                    break;
-                case R.id.verify_otp_rb:
-                    headlessRequestType = HeadlessRequestType.VERIFY_OTP;
-                    break;
-            }
-            if (headlessRequestType == HeadlessRequestType.VERIFY_OTP) {
-                otpEditText.setVisibility(View.VISIBLE);
-            } else {
-                otpEditText.setVisibility(View.GONE);
-            }
-            otplessView.setHeadlessCallback(getHeadlessRequest(), this::onHeadlessCallback);
-        });
         RadioGroup channelRadioGroup = findViewById(R.id.channel_type_rg);
         channelRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             switch (checkedId) {
                 case R.id.whatsapp_rb:
-                    channelType = OtplessChannelType.WHATSAPP;
+                    channelType = HeadlessChannelType.WHATSAPP;
                     break;
                 case R.id.gmail_rb:
-                    channelType = OtplessChannelType.GMAIL;
+                    channelType = HeadlessChannelType.GMAIL;
                     break;
                 case R.id.twitter_rb:
-                    channelType = OtplessChannelType.TWITTER;
+                    channelType = HeadlessChannelType.TWITTER;
                     break;
                 case R.id.slack_rb:
-                    channelType = OtplessChannelType.SLACK;
+                    channelType = HeadlessChannelType.SLACK;
                     break;
                 case R.id.facebook_rb:
-                    channelType = OtplessChannelType.FACEBOOK;
+                    channelType = HeadlessChannelType.FACEBOOK;
                     break;
                 case R.id.linkedin_rb:
-                    channelType = OtplessChannelType.LINKEDIN;
+                    channelType = HeadlessChannelType.LINKEDIN;
                     break;
                 case R.id.microsoft_rb:
-                    channelType = OtplessChannelType.MICROSOFT;
+                    channelType = HeadlessChannelType.MICROSOFT;
                     break;
             }
             otplessView.setHeadlessCallback(getHeadlessRequest(), this::onHeadlessCallback);
@@ -163,9 +108,6 @@ public class MainActivity extends AppCompatActivity {
             message = response.getData().toString();
         } else {
             message = response.getError();
-        }
-        if (HeadlessRequestType.OTPLINK.getRequestName().equals(response.getRequest())) {
-            // do some task on request check
         }
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }

@@ -152,7 +152,11 @@ public class WebJsInterface {
                     final String jsonString = getString(jsonObject, "response");
                     if (jsonString.isEmpty()) return;
                     final JSONObject response = new JSONObject(jsonString);
-                    this.mListener.sendHeadlessResponse(response);
+                    Boolean closeView = getBoolean(jsonObject, "closeView");
+                    if (closeView == null) {
+                        closeView = false;
+                    }
+                    this.mListener.sendHeadlessResponse(response, closeView);
                     break;
 
             }

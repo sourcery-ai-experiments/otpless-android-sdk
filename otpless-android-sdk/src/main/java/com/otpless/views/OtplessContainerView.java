@@ -296,7 +296,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
     }
 
     @Override
-    public void onHeadlessResult(HeadlessResponse response) {
-        if (this.viewContract != null) this.viewContract.onHeadlessResult(response);
+    public void onHeadlessResult(HeadlessResponse response, boolean closeView) {
+        if (this.viewContract != null) this.viewContract.onHeadlessResult(response, closeView);
     }
 }
