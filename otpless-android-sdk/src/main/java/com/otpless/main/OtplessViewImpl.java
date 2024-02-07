@@ -68,6 +68,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private boolean backSubscription = false;
     private boolean isLoaderVisible = true;
     private boolean isRetryVisible = true;
+    private boolean isWholeViewInvisible = false;
 
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
 
@@ -343,6 +344,9 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         parent.addView(containerView);
         wContainer = new WeakReference<>(containerView);
         OtplessNetworkManager.getInstance().addListeners(activity, this);
+        if (isWholeViewInvisible) {
+            containerView.setVisibility(View.INVISIBLE);
+        }
     }
 
     private void removeView() {
@@ -558,6 +562,11 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     public void setFabText(final String text) {
         if (text == null || text.length() == 0) return;
         this.mFabText = text;
+    }
+
+    @Override
+    public void hideContainerView() {
+        isWholeViewInvisible = true;
     }
 
     @Override
