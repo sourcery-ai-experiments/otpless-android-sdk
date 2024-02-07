@@ -565,8 +565,8 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     }
 
     @Override
-    public void setContainerViewInvisibility(boolean loaderVisible) {
-        isWholeViewInvisible = loaderVisible;
+    public void hideContainerView() {
+        isWholeViewInvisible = true;
     }
 
     @Override
