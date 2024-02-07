@@ -78,5 +78,5 @@ public interface OtplessView {
 
     default void setRetryVisibility(final boolean isVisible) {}
 
-    void setWholeViewInvisibility(boolean visibility);
+    void setContainerViewInvisibility(boolean visibility);
 }
