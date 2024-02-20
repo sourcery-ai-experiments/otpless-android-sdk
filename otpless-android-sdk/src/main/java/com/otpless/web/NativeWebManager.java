@@ -305,6 +305,66 @@ public class NativeWebManager implements OtplessWebListener {
         }
     }
 
+    //key 26
+    @Override
+    public void initWebAuthnRegistration(JSONObject request) {
+        try {
+            this.contract.getWebAuthnManager().initRegistration(
+                    request, new ApiCallback<String>() {
+                        @Override
+                        public void onSuccess(String data) {
+                            mWebView.callWebJs("onWebAuthnRegistrationSuccess", data);
+                        }
+
+                        @Override
+                        public void onError(Throwable exception) {
+                            String error = exception.getMessage();
+                            if (error == null) {
+                                error = "Web authn registration failed.";
+                            }
+                            mWebView.callWebJs("onWebAuthnRegistrationError", error);
+                        }
+                    }
+            );
+        } catch (Exception e) {
+            String error = e.getMessage();
+            if (error == null) {
+                error = "Web authn registration failed.";
+            }
+            mWebView.callWebJs("onWebAuthnRegistrationError", error);
+        }
+    }
+
+    //key 27
+    @Override
+    public void initWebAuthnSignin(JSONObject request) {
+        try {
+            this.contract.getWebAuthnManager().initLogin(
+                    request, new ApiCallback<String>() {
+                        @Override
+                        public void onSuccess(String data) {
+                            mWebView.callWebJs("onWebAuthnSigninSuccess", data);
+                        }
+
+                        @Override
+                        public void onError(Throwable exception) {
+                            String error = exception.getMessage();
+                            if (error == null) {
+                                error = "Web authn signin failed.";
+                            }
+                            mWebView.callWebJs("onWebAuthnSigninError", error);
+                        }
+                    }
+            );
+        } catch (Exception e) {
+            String error = e.getMessage();
+            if (error == null) {
+                error = "Web authn signin failed.";
+            }
+            mWebView.callWebJs("onWebAuthnSigninError", error);
+        }
+    }
+
     public NativeWebListener getNativeWebListener() {
         return nativeWebListener;
     }

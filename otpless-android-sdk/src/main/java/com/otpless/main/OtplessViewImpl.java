@@ -68,6 +68,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private boolean backSubscription = false;
     private boolean isLoaderVisible = true;
     private boolean isRetryVisible = true;
+    private OtplessWebAuthnManager webAuthnManager = null;
 
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
 
@@ -245,6 +246,14 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     @Override
     public JSONObject getExtraParams() {
         return this.extras;
+    }
+
+    @Override
+    public OtplessWebAuthnManager getWebAuthnManager() {
+        if (this.webAuthnManager == null) {
+            this.webAuthnManager = new OtplessWebAuthnManagerImpl(this.activity);
+        }
+        return this.webAuthnManager;
     }
 
     @Override
