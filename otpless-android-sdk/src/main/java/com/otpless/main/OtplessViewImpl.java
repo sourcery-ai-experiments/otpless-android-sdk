@@ -68,6 +68,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private boolean backSubscription = false;
     private boolean isLoaderVisible = true;
     private boolean isRetryVisible = true;
+    private boolean isContainerViewInvisible = false;
     private OtplessWebAuthnManager webAuthnManager = null;
 
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
@@ -352,6 +353,9 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         parent.addView(containerView);
         wContainer = new WeakReference<>(containerView);
         OtplessNetworkManager.getInstance().addListeners(activity, this);
+        if (isContainerViewInvisible) {
+            containerView.setVisibility(View.INVISIBLE);
+        }
     }
 
     private void removeView() {
@@ -570,6 +574,11 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     }
 
     @Override
+    public void hideContainerView() {
+        isContainerViewInvisible = true;
+    }
+
+    @Override
     public void showOtplessLoginPage(JSONObject extra, OtplessUserDetailCallback callback) {
         this.setCallback(callback, extra, true);
         addViewIfNotAdded();
@@ -632,6 +641,15 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
                                 });
             } catch (Throwable ignore) {
             }
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        final OtplessContainerView otplessContainerView = wContainer.get();
+        if (otplessContainerView != null && otplessContainerView.getWebView() != null && otplessContainerView.getWebManager() != null) {
+            otplessContainerView.getWebManager()
+                    .onActivityResult(requestCode, resultCode, data);
         }
     }
 }

@@ -77,4 +77,8 @@ public interface OtplessView {
     default void setLoaderVisibility(final boolean isVisible) {}
 
     default void setRetryVisibility(final boolean isVisible) {}
+
+    void hideContainerView();
+
+    default void onActivityResult(final int requestCode, final int resultCode, final Intent data) {}
 }
