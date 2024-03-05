@@ -297,6 +297,7 @@ public class NativeWebManager implements OtplessWebListener {
     // key 20
     @Override
     public void sendHeadlessRequest() {
+        Log.d("Otpless", "send headless request called");
         final JSONObject extras = contract.getExtraParams();
         if (extras == null) return;
         callHeadlessRequestToWeb(extras);

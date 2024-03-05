@@ -2,6 +2,7 @@ package com.otpless.otplesssample;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioGroup;
@@ -15,6 +16,7 @@ import com.otpless.dto.HeadlessRequest;
 import com.otpless.dto.HeadlessChannel;
 import com.otpless.dto.HeadlessResponse;
 import com.otpless.dto.HeadlessChannelType;
+import com.otpless.dto.OtplessRequest;
 import com.otpless.dto.OtplessResponse;
 import com.otpless.main.OtplessManager;
 import com.otpless.main.OtplessView;
@@ -33,17 +35,20 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initTestingView();
+        RadioGroup channelRadioGroup = findViewById(R.id.channel_type_rg);
         // copy this code in onCreate of your Login Activity
         otplessView = OtplessManager.getInstance().getOtplessView(this);
         otplessView.setHeadlessCallback(getHeadlessRequest(), this::onHeadlessCallback);
         findViewById(R.id.headless_sdk_btn).setOnClickListener(v -> {
             otplessView.startHeadless(getHeadlessRequest(), this::onHeadlessCallback);
         });
+        Log.d("Otpless", "Verify intent from onCreate");
         otplessView.verifyIntent(getIntent());
     }
 
     private HeadlessRequest getHeadlessRequest() {
         final HeadlessRequest request = new HeadlessRequest();
+        request.setAppId("870OD5RME1UBYVDJPKL3");
         final String input = inputEditText.getText().toString();
 
         if (!input.isEmpty()) {
@@ -99,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        Log.d("Otpless", "Verify intent from onNewIntent");
         otplessView.verifyIntent(intent);
     }
 

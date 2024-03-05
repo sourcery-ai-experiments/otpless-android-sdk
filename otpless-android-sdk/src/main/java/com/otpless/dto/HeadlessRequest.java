@@ -17,6 +17,9 @@ public class HeadlessRequest {
     private String otp;
     private String code;
 
+    @NonNull
+    private String appId = "";
+
     @Nullable
     private HeadlessChannelType channelType;
 
@@ -54,6 +57,15 @@ public class HeadlessRequest {
         return channel;
     }
 
+    @NonNull
+    public String getAppId() {
+        return appId;
+    }
+
+    public void setAppId(@NonNull String appId) {
+        this.appId = appId;
+    }
+
     public boolean hasCodeOrOtp() {
         return Utility.isValid(this.code, this.otp);
     }
@@ -70,8 +82,9 @@ public class HeadlessRequest {
                     requestJson.put("email", this.email);
                     break;
                 case OAUTH:
-                    assert this.channelType != null;
-                    requestJson.put("channelType", this.channelType.getChannelTypeName());
+                    if (channelType != null) {
+                        requestJson.put("channelType", this.channelType.getChannelTypeName());
+                    }
                     break;
             }
             if (this.otp != null) requestJson.put("otp", this.otp);

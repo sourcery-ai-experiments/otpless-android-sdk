@@ -53,7 +53,7 @@ import java.util.Queue;
 final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConnectionChangeListener, NativeWebListener {
 
     private static final String VIEW_TAG_NAME = "OtplessView";
-    private static final String BASE_LOADING_URL = "https://otpless.tech/appid/870OD5RME1UBYVDJPKL3";
+    private static final String BASE_LOADING_URL = "https://otpless.com";
     private final Activity activity;
     private JSONObject extras;
 
@@ -147,14 +147,21 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         loadWebView(null, null);
     }
 
+    private Uri.Builder createHeadlessUrlBuilder() {
+        final Uri.Builder builder = Uri.parse(
+                getFirstLoadingUrl(BASE_LOADING_URL, null)
+        ).buildUpon();
+        builder.appendPath("appid");
+        builder.appendPath(this.headlessRequest.getAppId());
+        builder.appendQueryParameter("isHeadless", String.valueOf(true));
+        return builder;
+    }
+
     private void loadWebView(final String baseUrl, Uri uri) {
         final OtplessContainerView containerView = wContainer.get();
         if (containerView == null || containerView.getWebView() == null) return;
         if (this.isHeadless) {
-            final Uri.Builder builder = Uri.parse(
-                    getFirstLoadingUrl(BASE_LOADING_URL, null)
-            ).buildUpon();
-            builder.appendQueryParameter("isHeadless", String.valueOf(true));
+            final Uri.Builder builder = createHeadlessUrlBuilder();
             if (uri != null) {
                 String code = uri.getQueryParameter("code");
                 this.headlessRequest.setCode(code);
@@ -253,21 +260,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         this.isHeadless = true;
         this.headlessRequest = request;
         this.headlessResponseCallback = callback;
-        // if one tap is enabled load the url here
-        if (this.isOneTapEnabled) {
-            this.isLoginPageEnabled = false;
-            addViewIfNotAdded();
-            final OtplessContainerView containerView = wContainer.get();
-            if (containerView == null || containerView.getWebView() == null) return;
-            final Uri.Builder builder = Uri.parse(getFirstLoadingUrl(BASE_LOADING_URL, null)).buildUpon();
-            final SharedPreferences pref = activity.getPreferences(Context.MODE_PRIVATE);
-            final String plov = pref.getString("plov", "");
-            if (!plov.isEmpty()) {
-                builder.appendQueryParameter("plov", plov);
-            }
-            builder.appendQueryParameter("isHeadless", String.valueOf(true));
-            containerView.getWebView().loadWebUrl(builder.build().toString());
-        }
     }
 
     @Override
@@ -345,10 +337,32 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         return true;
     }
 
+    private void handleHeadlessAndOnetapSpecialCase() {
+        // if one tap is enabled load the url here
+        this.isLoginPageEnabled = false;
+        addViewIfNotAdded();
+        final OtplessContainerView containerView = wContainer.get();
+        if (containerView == null || containerView.getWebView() == null) return;
+        final Uri.Builder builder =createHeadlessUrlBuilder();
+        final SharedPreferences pref = activity.getPreferences(Context.MODE_PRIVATE);
+        final String plov = pref.getString("plov", "");
+        if (!plov.isEmpty()) {
+            builder.appendQueryParameter("plov", plov);
+        }
+        builder.appendQueryParameter("isHeadless", String.valueOf(true));
+        containerView.getWebView().loadWebUrl(builder.build().toString());
+    }
+
     @Override
     public boolean verifyIntent(Intent intent) {
         Uri uri = intent.getData();
-        if (uri == null) return false;
+        if (uri == null) {
+            // check for headless and onetap special case
+            if (this.isHeadless && this.isOneTapEnabled) {
+                handleHeadlessAndOnetapSpecialCase();
+            }
+            return false;
+        }
         if (!"otpless".equals(uri.getHost())) return false;
         // check if passed deeplink is having uri query param then open that is chrome custom tab
         final String otplessCode = uri.getQueryParameter("uri");
