@@ -8,6 +8,7 @@ import com.otpless.utils.Utility;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+
 public class HeadlessRequest {
 
     @NonNull
@@ -18,13 +19,17 @@ public class HeadlessRequest {
     private String code;
 
     @NonNull
+    private String countryCode = "";
+
+    @NonNull
     private String appId = "";
 
     @Nullable
     private HeadlessChannelType channelType;
 
-    public void setPhoneNumber(String phoneNumber) {
+    public void setPhoneNumber(String countryCode, String phoneNumber) {
         this.phoneNumber = phoneNumber;
+        this.countryCode = countryCode;
         this.channel = HeadlessChannel.PHONE;
         channelType = null;
         email = null;
@@ -77,6 +82,7 @@ public class HeadlessRequest {
             switch (this.channel) {
                 case PHONE:
                     requestJson.put("phone", this.phoneNumber);
+                    requestJson.put("countryCode", this.countryCode);
                     break;
                 case EMAIL:
                     requestJson.put("email", this.email);

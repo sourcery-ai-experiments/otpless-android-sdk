@@ -311,14 +311,14 @@ public class NativeWebManager implements OtplessWebListener {
     @Override
     public void sendHeadlessResponse(@NonNull JSONObject response, boolean closeView) {
         HeadlessResponse headlessResponse;
-        final String request = response.optString("request");
+        final String channel = response.optString("channel");
         final String error = response.optString("error");
         final JSONObject resp = response.optJSONObject("response");
         // success case
         if (error.isEmpty()) {
-            headlessResponse = new HeadlessResponse(request, resp, null);
+            headlessResponse = new HeadlessResponse(channel, resp, null);
         } else {
-            headlessResponse = new HeadlessResponse(request, null, error);
+            headlessResponse = new HeadlessResponse(channel, null, error);
         }
         mActivity.runOnUiThread(() -> this.contract.onHeadlessResult(headlessResponse, closeView));
     }

@@ -11,7 +11,15 @@ public enum HeadlessChannelType {
     SLACK("SLACK"),
     FACEBOOK("FACEBOOK"),
     LINKEDIN("LINKEDIN"),
-    MICROSOFT("MICROSOFT");
+    MICROSOFT("MICROSOFT"),
+    LINE("LINE") ,
+    LINEAR("LINEAR") ,
+    NOTION("NOTION") ,
+    TWITCH("TWITCH") ,
+    GITHUB("GITHUB") ,
+    BITBUCKET("BITBUCKET") ,
+    ATLASSIAN("ATLASSIAN") ,
+    GITLAB("GITLAB");
 
     @NonNull
     private final String channelTypeName;

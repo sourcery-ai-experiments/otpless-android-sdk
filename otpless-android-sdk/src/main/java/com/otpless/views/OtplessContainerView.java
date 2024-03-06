@@ -295,6 +295,13 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
         this.setLayoutParams(params);
     }
 
+    public void disableHeadlessConfig() {
+        this.isHeadless = false;
+        ViewGroup.LayoutParams params = this.getLayoutParams();
+        params.height = ViewGroup.LayoutParams.MATCH_PARENT;
+        this.setLayoutParams(params);
+    }
+
     @Override
     public void onHeadlessResult(HeadlessResponse response, boolean closeView) {
         if (this.viewContract != null) this.viewContract.onHeadlessResult(response, closeView);

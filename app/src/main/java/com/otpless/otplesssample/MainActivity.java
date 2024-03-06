@@ -2,6 +2,7 @@ package com.otpless.otplesssample;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -35,12 +36,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initTestingView();
-        RadioGroup channelRadioGroup = findViewById(R.id.channel_type_rg);
         // copy this code in onCreate of your Login Activity
         otplessView = OtplessManager.getInstance().getOtplessView(this);
         otplessView.setHeadlessCallback(getHeadlessRequest(), this::onHeadlessCallback);
         findViewById(R.id.headless_sdk_btn).setOnClickListener(v -> {
             otplessView.startHeadless(getHeadlessRequest(), this::onHeadlessCallback);
+        });
+        findViewById(R.id.show_login_btn).setOnClickListener(v -> {
+            final OtplessRequest request = new OtplessRequest("870OD5RME1UBYVDJPKL3");
+            otplessView.setCallback(request, this::onOtplessCallback, true);
+            otplessView.showOtplessLoginPage(request, this::onOtplessCallback);
+        });
+        findViewById(R.id.show_floater_btn).setOnClickListener(v -> {
+            final OtplessRequest request = new OtplessRequest("870OD5RME1UBYVDJPKL3");
+            otplessView.setCallback(request, this::onOtplessCallback, false);
+            otplessView.showOtplessFab(false);
+            otplessView.startOtpless(request, this::onOtplessCallback);
         });
         Log.d("Otpless", "Verify intent from onCreate");
         otplessView.verifyIntent(getIntent());
@@ -55,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 // parse phone number
                 Long.parseLong(input);
-                request.setPhoneNumber(input);
+                request.setPhoneNumber("+91", input);
             } catch (Exception ex) {
                 request.setEmail(input);
             }
