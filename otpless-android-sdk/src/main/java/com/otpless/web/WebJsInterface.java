@@ -1,9 +1,12 @@
 package com.otpless.web;
 
+import android.util.Log;
 import android.webkit.JavascriptInterface;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.otpless.BuildConfig;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -68,7 +71,6 @@ public class WebJsInterface {
             final JSONObject jsonObject = new JSONObject(jsObjStr);
             final Integer actionCode = getInt(jsonObject, "key");
             if (actionCode == null) return;
-
             switch (actionCode) {
                 // to show loader
                 case 1:
@@ -149,6 +151,7 @@ public class WebJsInterface {
                     this.mListener.sendHeadlessRequest();
                     break;
                 case 21:
+
                     final String jsonString = getString(jsonObject, "response");
                     if (jsonString.isEmpty()) return;
                     final JSONObject response = new JSONObject(jsonString);

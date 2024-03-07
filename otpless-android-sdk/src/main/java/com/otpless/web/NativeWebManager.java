@@ -312,7 +312,7 @@ public class NativeWebManager implements OtplessWebListener {
     public void sendHeadlessResponse(@NonNull JSONObject response, boolean closeView) {
         HeadlessResponse headlessResponse;
         final String channel = response.optString("channel");
-        final String error = response.optString("error");
+        final String error = response.optString("errorMessage");
         final JSONObject resp = response.optJSONObject("response");
         // success case
         if (error.isEmpty()) {

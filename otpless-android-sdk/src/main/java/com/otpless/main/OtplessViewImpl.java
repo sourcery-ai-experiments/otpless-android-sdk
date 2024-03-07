@@ -52,7 +52,7 @@ import java.util.Queue;
 final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConnectionChangeListener, NativeWebListener {
 
     private static final String VIEW_TAG_NAME = "OtplessView";
-    private static final String BASE_LOADING_URL = "https://otpless.tech";
+    private static final String BASE_LOADING_URL = "https://otpless.com";
     private final Activity activity;
     private OtplessRequest mOtplessRequest;
 
