@@ -22,6 +22,7 @@ import com.otpless.dto.HeadlessResponse;
 import com.otpless.dto.Triple;
 import com.otpless.dto.Tuple;
 import com.otpless.main.NativeWebListener;
+import com.otpless.main.OtplessTruIdManager;
 import com.otpless.main.WebActivityContract;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
@@ -311,14 +312,14 @@ public class NativeWebManager implements OtplessWebListener {
     @Override
     public void sendHeadlessResponse(@NonNull JSONObject response, boolean closeView) {
         HeadlessResponse headlessResponse;
-        final String channel = response.optString("channel");
+        final String responseType = response.optString("responseType");
         final String error = response.optString("errorMessage");
         final JSONObject resp = response.optJSONObject("response");
         // success case
         if (error.isEmpty()) {
-            headlessResponse = new HeadlessResponse(channel, resp, null);
+            headlessResponse = new HeadlessResponse(responseType, resp, null);
         } else {
-            headlessResponse = new HeadlessResponse(channel, null, error);
+            headlessResponse = new HeadlessResponse(responseType, null, error);
         }
         mActivity.runOnUiThread(() -> this.contract.onHeadlessResult(headlessResponse, closeView));
     }
@@ -339,5 +340,22 @@ public class NativeWebManager implements OtplessWebListener {
         return nativeWebListener;
     }
 
-
+    @Override
+    public void openTruIdSdk(@NonNull final String url, @NonNull String accessToken, boolean isDebug) {
+        final JSONObject response;
+        if (accessToken.isEmpty()) {
+            response = OtplessTruIdManager.openWithDataCellular(
+                    mActivity.getApplicationContext(), url, isDebug
+            );
+        } else {
+            response = OtplessTruIdManager.openWithDataCellularAndAccessToken(
+                    mActivity.getApplicationContext(), url, accessToken, isDebug
+            );
+        }
+        final String responseString = response.toString();
+        if (BuildConfig.DEBUG) {
+            Log.d("Otpless", responseString);
+        }
+        mWebView.callWebJs("onTruIdSdkResponse", responseString);
+    }
 }

@@ -151,7 +151,6 @@ public class WebJsInterface {
                     this.mListener.sendHeadlessRequest();
                     break;
                 case 21:
-
                     final String jsonString = getString(jsonObject, "response");
                     if (jsonString.isEmpty()) return;
                     final JSONObject response = new JSONObject(jsonString);
@@ -161,7 +160,17 @@ public class WebJsInterface {
                     }
                     this.mListener.sendHeadlessResponse(response, closeView);
                     break;
-
+                case 42: {
+                    final String url = getString(jsonObject, "url");
+                    if (url.isEmpty()) return;
+                    final String accessToken = getString(jsonObject, "accessToken");
+                    Boolean isDebug = getBoolean(jsonObject, "isDebug");
+                    if (isDebug == null) {
+                        isDebug = false;
+                    }
+                    this.mListener.openTruIdSdk(url, accessToken, isDebug);
+                    break;
+                }
             }
         } catch (JSONException e) {
             e.printStackTrace();

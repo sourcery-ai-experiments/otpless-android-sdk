@@ -8,7 +8,7 @@ import org.json.JSONObject;
 public class HeadlessResponse {
 
     @NonNull
-    private final String channel;
+    private final String responseType;
     @Nullable
     private final JSONObject data;
     @Nullable
@@ -17,14 +17,14 @@ public class HeadlessResponse {
     public HeadlessResponse(
             @NonNull String request, @Nullable JSONObject data, @Nullable String error
     ) {
-        this.channel = request;
+        this.responseType = request;
         this.data = data;
         this.error = error;
     }
 
     @NonNull
-    public String getChannel() {
-        return channel;
+    public String getResponseType() {
+        return responseType;
     }
 
     @Nullable

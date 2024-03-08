@@ -42,4 +42,7 @@ public interface OtplessWebListener extends WebLoaderCallback {
 
     //key 21
     void sendHeadlessResponse(@NonNull JSONObject response, boolean closeView);
+
+    //key 42
+    void openTruIdSdk(@NonNull final String url, @NonNull String accessToken, boolean isDebug);
 }
