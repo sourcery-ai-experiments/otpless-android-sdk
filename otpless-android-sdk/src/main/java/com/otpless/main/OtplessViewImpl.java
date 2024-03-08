@@ -72,22 +72,18 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private boolean backSubscription = false;
     private boolean isLoaderVisible = true;
     private boolean isRetryVisible = true;
+    private boolean isContainerViewInvisible = false;
     private boolean isHeadless = false;
     private boolean isOneTapEnabled = true;
     private HeadlessRequest headlessRequest;
 
     private HeadlessResponseCallback headlessResponseCallback;
-
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
-
     OtplessViewRemovalNotifier viewRemovalNotifier = null;
-
     private ActivityResultLauncher<IntentSenderRequest> phoneNumberHintIntentResultLauncher = null;
-
     OtplessViewImpl(final Activity activity) {
         this.activity = activity;
     }
-
     Activity getActivity() {
         return this.activity;
     }
@@ -325,7 +321,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         if (!plov.isEmpty()) {
             builder.appendQueryParameter("plov", plov);
         }
-        builder.appendQueryParameter("isHeadless", String.valueOf(true));
         containerView.getWebView().loadWebUrl(builder.build().toString());
     }
 
@@ -417,6 +412,9 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         parent.addView(containerView);
         wContainer = new WeakReference<>(containerView);
         OtplessNetworkManager.getInstance().addListeners(activity, this);
+        if (isContainerViewInvisible) {
+            containerView.setVisibility(View.INVISIBLE);
+        }
     }
 
     private void removeView() {
@@ -636,6 +634,11 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     }
 
     @Override
+    public void hideContainerView() {
+        isContainerViewInvisible = true;
+    }
+
+    @Override
     public void showOtplessLoginPage(@NonNull final OtplessRequest request, OtplessUserDetailCallback callback) {
         // setting configuration
         this.isLoginPageEnabled = true;
@@ -680,6 +683,15 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
                                 });
             } catch (Throwable ignore) {
             }
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        final OtplessContainerView otplessContainerView = wContainer.get();
+        if (otplessContainerView != null && otplessContainerView.getWebView() != null && otplessContainerView.getWebManager() != null) {
+            otplessContainerView.getWebManager()
+                    .onActivityResult(requestCode, resultCode, data);
         }
     }
 

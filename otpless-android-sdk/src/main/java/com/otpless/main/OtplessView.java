@@ -54,6 +54,9 @@ public interface OtplessView {
 
     void startHeadless(@NonNull final HeadlessRequest request, final HeadlessResponseCallback callback);
 
+    void hideContainerView();
+
+    default void onActivityResult(final int requestCode, final int resultCode, final Intent data) {}
     void setHeadlessCallback(@NonNull final HeadlessRequest request, final HeadlessResponseCallback callback);
 
     default void enableOneTap(final boolean isEnable) {
