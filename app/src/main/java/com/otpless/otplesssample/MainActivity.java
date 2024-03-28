@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.otpless.dto.OtplessRequest;
 import com.otpless.dto.HeadlessRequest;
 import com.otpless.dto.HeadlessChannel;
 import com.otpless.dto.HeadlessResponse;
@@ -44,14 +45,8 @@ public class MainActivity extends AppCompatActivity {
         });
         findViewById(R.id.show_login_btn).setOnClickListener(v -> {
             final OtplessRequest request = new OtplessRequest("870OD5RME1UBYVDJPKL3");
-            otplessView.setCallback(request, this::onOtplessCallback, true);
+            otplessView.setCallback(request, this::onOtplessCallback);
             otplessView.showOtplessLoginPage(request, this::onOtplessCallback);
-        });
-        findViewById(R.id.show_floater_btn).setOnClickListener(v -> {
-            final OtplessRequest request = new OtplessRequest("870OD5RME1UBYVDJPKL3");
-            otplessView.setCallback(request, this::onOtplessCallback, false);
-            otplessView.showOtplessFab(false);
-            otplessView.startOtpless(request, this::onOtplessCallback);
         });
         Log.d("Otpless", "Verify intent from onCreate");
         otplessView.verifyIntent(getIntent());

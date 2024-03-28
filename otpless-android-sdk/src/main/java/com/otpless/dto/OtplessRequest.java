@@ -13,25 +13,15 @@ import java.util.Map;
 public class OtplessRequest {
 
     @NonNull
-    private String cid = "";
-    @NonNull
     private String uxmode = "";
-
     @NonNull
     private String locale = "";
-
+    private final HashMap<String, String> mExtras = new HashMap<>();
     @NonNull
     private final String appId;
 
-    public OtplessRequest(@NonNull String appId) {
+    public OtplessRequest(@NonNull final String appId) {
         this.appId = appId;
-    }
-
-    private HashMap<String, String> mExtras = new HashMap<>();
-
-    public OtplessRequest setCid(@NonNull String cid) {
-        this.cid = cid;
-        return this;
     }
 
     public OtplessRequest setUxmode(@NonNull String uxmode) {
@@ -49,15 +39,13 @@ public class OtplessRequest {
         return this;
     }
 
+    @NonNull
     public JSONObject toJsonObj() {
         final JSONObject extra = new JSONObject();
         try {
             extra.put("method", "get");
             //region adding data in params
             final JSONObject params = new JSONObject();
-            if (Utility.isValid(cid)) {
-                params.put("cid", cid);
-            }
             if (Utility.isValid(uxmode)) {
                 params.put("uxmode", uxmode);
             }

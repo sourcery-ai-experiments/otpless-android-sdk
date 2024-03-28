@@ -10,11 +10,9 @@ import com.otpless.views.FabButtonAlignment;
 import com.otpless.views.OtplessUserDetailCallback;
 
 public interface OtplessView {
-    /// methods to start otpless
-    void startOtpless(@NonNull final OtplessRequest request, final OtplessUserDetailCallback callback);
 
     /// explicitly setting the callback
-    void setCallback(@NonNull final OtplessRequest request, final OtplessUserDetailCallback callback, final boolean isLoginPage);
+    void setCallback(@NonNull final OtplessRequest request, final OtplessUserDetailCallback callback);
 
     /// explicitly closing the view
     void closeView();
@@ -32,31 +30,34 @@ public interface OtplessView {
     void setBackBackButtonSubscription(final boolean backSubscription);
 
     /// to configure the visibility of otpless fab button
+    @Deprecated
     void showOtplessFab(boolean isToShow);
 
     /// to set the position of otpless fab button
+    @Deprecated
     void setFabConfig(final FabButtonAlignment alignment, final int sideMargin, final int bottomMargin);
 
     /// removes fab button if added on login screens window
+    @Deprecated
     void onSignInCompleted();
 
     /// to change the text of sign in fab button
+    @Deprecated
     void setFabText(final String text);
 
-    /// to show otpless login page with extra and callback
+    /// to show otpless login page
     void showOtplessLoginPage(@NonNull final OtplessRequest request, OtplessUserDetailCallback callback);
 
-    default void setLoaderVisibility(final boolean isVisible) {
-    }
+    default void setLoaderVisibility(final boolean isVisible) {}
 
-    default void setRetryVisibility(final boolean isVisible) {
-    }
-
-    void startHeadless(@NonNull final HeadlessRequest request, final HeadlessResponseCallback callback);
+    default void setRetryVisibility(final boolean isVisible) {}
 
     void hideContainerView();
 
     default void onActivityResult(final int requestCode, final int resultCode, final Intent data) {}
+
+    void startHeadless(@NonNull final HeadlessRequest request, final HeadlessResponseCallback callback);
+
     void setHeadlessCallback(@NonNull final HeadlessRequest request, final HeadlessResponseCallback callback);
 
     default void enableOneTap(final boolean isEnable) {

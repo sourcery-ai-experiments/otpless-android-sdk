@@ -56,7 +56,6 @@ public class NativeWebManager implements OtplessWebListener {
         mActivity = activity;
         mWebView = webView;
         this.contract = contract;
-        Utility.addContextInfo(mActivity);
     }
 
     // key 1
@@ -166,6 +165,8 @@ public class NativeWebManager implements OtplessWebListener {
         for (final Triple<String, String, Boolean> installStatus : messagingApps) {
             map.put("has" + installStatus.getFirst(), String.valueOf(installStatus.getThird()));
         }
+        map.put("inid", this.nativeWebListener.getInstallationId());
+        map.put("tsid", this.nativeWebListener.getInstallationId());
         return map;
     }
 
@@ -251,6 +252,7 @@ public class NativeWebManager implements OtplessWebListener {
 
     public void setNativeWebListener(NativeWebListener nativeWebListener) {
         this.nativeWebListener = nativeWebListener;
+        Utility.addContextInfo(mActivity, nativeWebListener);
     }
 
     // key 16
