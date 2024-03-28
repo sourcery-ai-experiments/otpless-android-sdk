@@ -6,7 +6,6 @@ import androidx.annotation.NonNull;
 
 import com.otpless.dto.HeadlessRequest;
 import com.otpless.dto.OtplessRequest;
-import com.otpless.views.FabButtonAlignment;
 import com.otpless.views.OtplessUserDetailCallback;
 
 public interface OtplessView {
@@ -28,22 +27,6 @@ public interface OtplessView {
     void setEventCallback(final OtplessEventCallback callback);
 
     void setBackBackButtonSubscription(final boolean backSubscription);
-
-    /// to configure the visibility of otpless fab button
-    @Deprecated
-    void showOtplessFab(boolean isToShow);
-
-    /// to set the position of otpless fab button
-    @Deprecated
-    void setFabConfig(final FabButtonAlignment alignment, final int sideMargin, final int bottomMargin);
-
-    /// removes fab button if added on login screens window
-    @Deprecated
-    void onSignInCompleted();
-
-    /// to change the text of sign in fab button
-    @Deprecated
-    void setFabText(final String text);
 
     /// to show otpless login page
     void showOtplessLoginPage(@NonNull final OtplessRequest request, OtplessUserDetailCallback callback);

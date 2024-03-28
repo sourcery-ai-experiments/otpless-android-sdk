@@ -7,11 +7,9 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.Button;
 import android.widget.FrameLayout;
 
 import androidx.activity.ComponentActivity;
@@ -22,7 +20,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.gms.auth.api.identity.Identity;
-import com.otpless.R;
 import com.otpless.dto.HeadlessRequest;
 import com.otpless.dto.HeadlessResponse;
 import com.otpless.dto.OtplessRequest;
@@ -34,7 +31,6 @@ import com.otpless.network.OnConnectionChangeListener;
 import com.otpless.network.OtplessNetworkManager;
 import com.otpless.utils.OtpReaderManager;
 import com.otpless.utils.Utility;
-import com.otpless.views.FabButtonAlignment;
 import com.otpless.views.OtplessContainerView;
 import com.otpless.views.OtplessUserDetailCallback;
 import com.otpless.web.NativeWebManager;
@@ -61,14 +57,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private WeakReference<OtplessContainerView> wContainer = new WeakReference<>(null);
     private OtplessUserDetailCallback detailCallback;
     private OtplessEventCallback eventCallback;
-    private FabButtonAlignment mAlignment = FabButtonAlignment.BottomRight;
-    private int mBottomMargin = 24;
-    private int mSideMargin = 16;
-    private String mFabText = "Sign in";
-    private boolean mShowOtplessFab = false;
-    private WeakReference<Button> wFabButton = new WeakReference<>(null);
-    private static final int ButtonWidth = 120;
-    private static final int ButtonHeight = 40;
 
     private boolean backSubscription = false;
     private boolean isLoaderVisible = true;
@@ -87,6 +75,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
     OtplessViewRemovalNotifier viewRemovalNotifier = null;
     private ActivityResultLauncher<IntentSenderRequest> phoneNumberHintIntentResultLauncher = null;
+
     OtplessViewImpl(final Activity activity) {
         this.activity = activity;
         final SharedPreferences preferences = activity.getPreferences(MODE_PRIVATE);
@@ -172,22 +161,29 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private String getFirstLoadingUrl() {
         final Uri.Builder urlToLoad = Uri.parse(OtplessViewImpl.BASE_LOADING_URL).buildUpon();
         urlToLoad.appendPath("appid");
-        urlToLoad.appendPath(this.mOtplessRequest.getAppId());
-        // check for additional json params while loading
-        final JSONObject extraParams = mOtplessRequest.toJsonObj();
-        try {
-            String methodName = extraParams.optString("method").toLowerCase();
-            if (methodName.equals("get")) {
-                // add the params in url
-                final JSONObject params = extraParams.getJSONObject("params");
-                for (Iterator<String> it = params.keys(); it.hasNext(); ) {
-                    String key = it.next();
-                    final String value = params.optString(key);
-                    if (value.isEmpty()) continue;
-                    urlToLoad.appendQueryParameter(key, value);
+        final String loginUrl;
+        if (this.isHeadless) {
+            urlToLoad.appendPath(this.headlessRequest.getAppId());
+            loginUrl = this.headlessRequest.getAppId().toLowerCase(Locale.US) + ".otpless://otpless";
+        } else {
+            urlToLoad.appendPath(this.mOtplessRequest.getAppId());
+            // check for additional json params while loading
+            final JSONObject extraParams = mOtplessRequest.toJsonObj();
+            try {
+                String methodName = extraParams.optString("method").toLowerCase();
+                if (methodName.equals("get")) {
+                    // add the params in url
+                    final JSONObject params = extraParams.getJSONObject("params");
+                    for (Iterator<String> it = params.keys(); it.hasNext(); ) {
+                        String key = it.next();
+                        final String value = params.optString(key);
+                        if (value.isEmpty()) continue;
+                        urlToLoad.appendQueryParameter(key, value);
+                    }
                 }
+            } catch (JSONException ignore) {
             }
-        } catch (JSONException ignore) {
+            loginUrl = this.mOtplessRequest.getAppId().toLowerCase(Locale.US) + ".otpless://otpless";
         }
         // adding package name
         final String packageName = this.activity.getPackageName();
@@ -200,7 +196,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         for (final Triple<String, String, Boolean> installStatus : messagingApps) {
             urlToLoad.appendQueryParameter("has" + installStatus.getFirst(), String.valueOf(installStatus.getThird()));
         }
-        final String loginUrl = this.mOtplessRequest.getAppId().toLowerCase(Locale.US) + ".otpless://otpless";
         urlToLoad.appendQueryParameter("login_uri", loginUrl);
         urlToLoad.appendQueryParameter("nbbs", String.valueOf(this.backSubscription));
         urlToLoad.appendQueryParameter("inid", this.installId);
@@ -237,17 +232,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     @Override
     public void onVerificationResult(int resultCode, JSONObject jsonObject) {
-        // if login page is not enable and show button is enabled
-        // show sign in button
-        if (mShowOtplessFab) {
-            // check if button is already added
-            final Button btn = wFabButton.get();
-            if (btn == null) {
-                addFabOnDecor();
-            } else {
-                btn.setVisibility(View.VISIBLE);
-            }
-        }
         if (this.detailCallback != null) {
             final OtplessResponse response = new OtplessResponse();
             if (resultCode == Activity.RESULT_CANCELED) {
@@ -527,116 +511,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     @Override
     public @Nullable ActivityResultLauncher<IntentSenderRequest> getPhoneNumberHintLauncher() {
         return this.phoneNumberHintIntentResultLauncher;
-    }
-
-    @Override
-    public void setFabConfig(final FabButtonAlignment alignment, final int sideMargin, final int bottomMargin) {
-        mAlignment = alignment;
-        switch (alignment) {
-            case BottomLeft:
-            case BottomRight: {
-                if (sideMargin > 0) {
-                    mSideMargin = sideMargin;
-                }
-                if (bottomMargin > 0) {
-                    mBottomMargin = bottomMargin;
-                }
-            }
-            break;
-            case BottomCenter:
-                if (bottomMargin > 0) {
-                    mBottomMargin = bottomMargin;
-                }
-        }
-    }
-
-    @Override
-    public void showOtplessFab(boolean isToShow) {
-        this.mShowOtplessFab = isToShow;
-    }
-
-    private void addFabOnDecor() {
-        if (wFabButton.get() != null) return;
-        final ViewGroup parentView = activity.findViewById(android.R.id.content);
-        if (parentView == null) return;
-        final Button button = (Button) activity.getLayoutInflater().inflate(R.layout.otpless_fab_button, parentView, false);
-        button.setOnClickListener(v -> onFabButtonClicked());
-        button.setText(mFabText);
-        final ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) button.getLayoutParams();
-        // region add the margin
-        final int screenWidth = parentView.getWidth();
-        final int screenHeight = parentView.getHeight();
-        final int buttonWidth = dpToPixel(ButtonWidth);
-        final int buttonHeight = dpToPixel(ButtonHeight);
-        switch (mAlignment) {
-            case Center: {
-                // in center case draw of button will be
-                int x = (screenWidth - buttonWidth) / 2;
-                int y = ((screenHeight - buttonHeight) / 2);
-                params.setMargins(x, y, 0, 0);
-            }
-            break;
-            // margin calculation excludes the height of status bar while setting and we are calculating
-            // the margin with reference to full screen that's way status bar height is added
-            case BottomRight: {
-                int marginEnd = dpToPixel(mSideMargin);
-                int marginBottom = dpToPixel(mBottomMargin);
-                int x = screenWidth - (buttonWidth + marginEnd);
-                int y = screenHeight - (buttonHeight + marginBottom);
-                params.setMargins(x, y, 0, 0);
-            }
-            break;
-            case BottomLeft: {
-                int marginStart = dpToPixel(mSideMargin);
-                int marginBottom = dpToPixel(mBottomMargin);
-                int y = screenHeight - (buttonHeight + marginBottom);
-                params.setMargins(marginStart, y, 0, 0);
-            }
-            break;
-            case BottomCenter: {
-                int x = (screenWidth - buttonWidth) / 2;
-                int marginBottom = dpToPixel(mBottomMargin);
-                int y = screenHeight - (buttonHeight + marginBottom);
-                params.setMargins(x, y, 0, 0);
-            }
-            break;
-        }
-        // endregion
-        parentView.addView(button);
-        wFabButton = new WeakReference<>(button);
-    }
-
-    private int dpToPixel(int dp) {
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) dp, activity.getResources().getDisplayMetrics());
-    }
-
-    private void onFabButtonClicked() {
-        final View fBtn = wFabButton.get();
-        if (fBtn != null) {
-            // make button invisible after first callback
-            fBtn.setVisibility(View.INVISIBLE);
-        }
-        startOtpless();
-    }
-
-    private void removeFabFromDecor() {
-        final Button fab = wFabButton.get();
-        if (fab == null) return;
-        final ViewGroup parentView = activity.findViewById(android.R.id.content);
-        if (parentView == null) return;
-        parentView.removeView(fab);
-        wFabButton = new WeakReference<>(null);
-    }
-
-    @Override
-    public void onSignInCompleted() {
-        removeFabFromDecor();
-    }
-
-    @Override
-    public void setFabText(final String text) {
-        if (text == null || text.length() == 0) return;
-        this.mFabText = text;
     }
 
     @Override
