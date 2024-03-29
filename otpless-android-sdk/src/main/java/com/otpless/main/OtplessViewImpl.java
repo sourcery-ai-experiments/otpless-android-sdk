@@ -94,11 +94,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         return this.activity;
     }
 
-    private void startOtpless() {
-        addViewIfNotAdded();
-        loadWebView(null, null);
-    }
-
     @Override
     public void startHeadless(@NonNull final HeadlessRequest request, final HeadlessResponseCallback callback) {
         // configuration setting
@@ -117,21 +112,12 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         loadWebView(null, null);
     }
 
-    private Uri.Builder createHeadlessUrlBuilder(final String appId) {
-        final Uri.Builder builder = Uri.parse(
-                getFirstLoadingUrl()
-        ).buildUpon();
-        builder.appendPath("appid");
-        builder.appendPath(appId);
-        builder.appendQueryParameter("isHeadless", String.valueOf(true));
-        return builder;
-    }
-
     private void loadWebView(final String baseUrl, Uri uri) {
         final OtplessContainerView containerView = wContainer.get();
         if (containerView == null || containerView.getWebView() == null) return;
         if (this.isHeadless) {
-            final Uri.Builder builder = createHeadlessUrlBuilder(this.headlessRequest.getAppId());
+            final Uri.Builder builder = Uri.parse(getFirstLoadingUrl()).buildUpon();
+            builder.appendQueryParameter("isHeadless", String.valueOf(true));
             if (uri != null) {
                 String code = uri.getQueryParameter("code");
                 this.headlessRequest.setCode(code);
@@ -164,7 +150,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         final String loginUrl;
         if (this.isHeadless) {
             urlToLoad.appendPath(this.headlessRequest.getAppId());
-            loginUrl = this.headlessRequest.getAppId().toLowerCase(Locale.US) + ".otpless://otpless";
+            loginUrl = "otpless." + this.headlessRequest.getAppId().toLowerCase(Locale.US) + "://otpless";
         } else {
             urlToLoad.appendPath(this.mOtplessRequest.getAppId());
             // check for additional json params while loading
@@ -183,7 +169,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
                 }
             } catch (JSONException ignore) {
             }
-            loginUrl = this.mOtplessRequest.getAppId().toLowerCase(Locale.US) + ".otpless://otpless";
+            loginUrl = "otpless." + this.mOtplessRequest.getAppId().toLowerCase(Locale.US) + "://otpless";
         }
         // adding package name
         final String packageName = this.activity.getPackageName();
@@ -294,7 +280,8 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         addViewIfNotAdded();
         final OtplessContainerView containerView = wContainer.get();
         if (containerView == null || containerView.getWebView() == null) return;
-        final Uri.Builder builder = createHeadlessUrlBuilder(this.headlessRequest.getAppId());
+        final Uri.Builder builder = Uri.parse(getFirstLoadingUrl()).buildUpon();
+        builder.appendQueryParameter("isHeadless", String.valueOf(true));
         final SharedPreferences pref = activity.getPreferences(MODE_PRIVATE);
         final String plov = pref.getString("plov", "");
         if (!plov.isEmpty()) {
