@@ -24,7 +24,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:host="otpless"
-                    android:scheme= "your_app_id_in_lowercase.otpless"/>
+                    android:scheme= "otpless.your_app_id_in_lowercase"/>
             </intent-filter>
         </activity>
 
