@@ -2,11 +2,10 @@ package com.otpless.otplesssample;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -15,10 +14,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.otpless.dto.OtplessRequest;
 import com.otpless.dto.HeadlessRequest;
-import com.otpless.dto.HeadlessChannel;
 import com.otpless.dto.HeadlessResponse;
 import com.otpless.dto.HeadlessChannelType;
-import com.otpless.dto.OtplessRequest;
 import com.otpless.dto.OtplessResponse;
 import com.otpless.main.OtplessManager;
 import com.otpless.main.OtplessView;
@@ -31,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private EditText inputEditText, otpEditText;
 
     private HeadlessChannelType channelType;
+    private TextView headlessResponseTv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
             otplessView.startHeadless(getHeadlessRequest(), this::onHeadlessCallback);
         });
         findViewById(R.id.show_login_btn).setOnClickListener(v -> {
-            final OtplessRequest request = new OtplessRequest("870OD5RME1UBYVDJPKL3");
+            final OtplessRequest request = new OtplessRequest("5E62ZCANETD9URNXPZ80");
             otplessView.setCallback(request, this::onOtplessCallback);
             otplessView.showOtplessLoginPage(request, this::onOtplessCallback);
         });
@@ -54,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
     private HeadlessRequest getHeadlessRequest() {
         final HeadlessRequest request = new HeadlessRequest();
-        request.setAppId("870OD5RME1UBYVDJPKL3");
+        request.setAppId("5E62ZCANETD9URNXPZ80");
         final String input = inputEditText.getText().toString();
 
         if (!input.isEmpty()) {
@@ -77,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initTestingView() {
         otpEditText = findViewById(R.id.otp_et);
+        headlessResponseTv = findViewById(R.id.headless_response_tv);
         RadioGroup channelRadioGroup = findViewById(R.id.channel_type_rg);
         channelRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             switch (checkedId) {
@@ -115,13 +114,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onHeadlessCallback(@NonNull final HeadlessResponse response) {
-        String message;
-        if (response.getError() == null) {
-            message = response.getData().toString();
-        } else {
-            message = response.getError();
-        }
+        String message = response.toString();
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        headlessResponseTv.setText(message);
     }
 
     private void onOtplessCallback(OtplessResponse response) {

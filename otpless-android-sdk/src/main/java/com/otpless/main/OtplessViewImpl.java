@@ -103,7 +103,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         this.headlessResponseCallback = callback;
         // check if view is all ready added then call the web js method
         final OtplessContainerView containerView = wContainer.get();
-        if (containerView.getWebView() != null && containerView.getWebView().getLoadedUrl() != null) {
+        if (containerView != null && containerView.getWebView() != null && containerView.getWebView().getLoadedUrl() != null) {
             containerView.getWebManager().sendHeadlessRequest();
             return;
         }
@@ -251,8 +251,9 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         final OtplessWebView webView = wContainer.get().getWebView();
         if (webView == null) return false;
         if (this.isHeadless) {
-            final HeadlessResponse response = new HeadlessResponse(
-                    this.headlessRequest.getChannel().getChannelName(), null, "User cancelled");
+            final HeadlessResponse response = HeadlessResponse.getBackPressedResponse(
+                    this.headlessRequest.getChannel().getChannelName()
+            );
             this.headlessResponseCallback.onHeadlessResponse(response);
             removeView();
             return true;

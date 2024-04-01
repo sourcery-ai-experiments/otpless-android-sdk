@@ -321,15 +321,10 @@ public class NativeWebManager implements OtplessWebListener {
     public void sendHeadlessResponse(@NonNull JSONObject response, boolean closeView) {
         HeadlessResponse headlessResponse;
         final String responseType = response.optString("responseType");
-        final String error = response.optString("errorMessage");
+        final int statusCode = response.optInt("statusCode", 0);
         final JSONObject resp = response.optJSONObject("response");
-        // success case
-        if (error.isEmpty()) {
-            headlessResponse = new HeadlessResponse(responseType, resp, null);
-        } else {
-            headlessResponse = new HeadlessResponse(responseType, null, error);
-        }
-        mActivity.runOnUiThread(() -> this.contract.onHeadlessResult(headlessResponse, closeView));
+        mActivity.runOnUiThread(() -> this.contract.onHeadlessResult(
+                new HeadlessResponse(responseType, response, statusCode), closeView));
     }
 
     public void onPhoneNumberSelectionResult(final Tuple<String, Exception> data) {
