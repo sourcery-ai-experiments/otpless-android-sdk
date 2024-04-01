@@ -7,11 +7,9 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.Button;
 import android.widget.FrameLayout;
 
 import androidx.activity.ComponentActivity;
@@ -22,7 +20,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.android.gms.auth.api.identity.Identity;
-import com.otpless.R;
+import com.otpless.dto.HeadlessRequest;
+import com.otpless.dto.HeadlessResponse;
 import com.otpless.dto.OtplessRequest;
 import com.otpless.dto.OtplessResponse;
 import com.otpless.dto.Triple;
@@ -32,7 +31,6 @@ import com.otpless.network.OnConnectionChangeListener;
 import com.otpless.network.OtplessNetworkManager;
 import com.otpless.utils.OtpReaderManager;
 import com.otpless.utils.Utility;
-import com.otpless.views.FabButtonAlignment;
 import com.otpless.views.OtplessContainerView;
 import com.otpless.views.OtplessUserDetailCallback;
 import com.otpless.web.NativeWebManager;
@@ -59,14 +57,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private WeakReference<OtplessContainerView> wContainer = new WeakReference<>(null);
     private OtplessUserDetailCallback detailCallback;
     private OtplessEventCallback eventCallback;
-    private FabButtonAlignment mAlignment = FabButtonAlignment.BottomRight;
-    private int mBottomMargin = 24;
-    private int mSideMargin = 16;
-    private String mFabText = "Sign in";
-    private boolean mShowOtplessFab = false;
-    private WeakReference<Button> wFabButton = new WeakReference<>(null);
-    private static final int ButtonWidth = 120;
-    private static final int ButtonHeight = 40;
 
     private boolean backSubscription = false;
     private boolean isLoaderVisible = true;
@@ -77,11 +67,13 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     @NonNull String installId = "";
     @NonNull String trackingSessionId = "";
     private static final String INSTALL_ID_KEY = "otpless_inid";
+    private boolean isHeadless = false;
+    private boolean isOneTapEnabled = true;
+    private HeadlessRequest headlessRequest;
 
+    private HeadlessResponseCallback headlessResponseCallback;
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
-
     OtplessViewRemovalNotifier viewRemovalNotifier = null;
-
     private ActivityResultLauncher<IntentSenderRequest> phoneNumberHintIntentResultLauncher = null;
 
     OtplessViewImpl(final Activity activity) {
@@ -98,12 +90,24 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         }
         trackingSessionId = UUID.randomUUID().toString() + "-" + System.currentTimeMillis();
     }
-
     Activity getActivity() {
         return this.activity;
     }
 
-    private void startOtpless() {
+    @Override
+    public void startHeadless(@NonNull final HeadlessRequest request, final HeadlessResponseCallback callback) {
+        // configuration setting
+        this.isHeadless = true;
+        // request and callback setting
+        this.headlessRequest = request;
+        this.headlessResponseCallback = callback;
+        // check if view is all ready added then call the web js method
+        final OtplessContainerView containerView = wContainer.get();
+        if (containerView != null && containerView.getWebView() != null && containerView.getWebView().getLoadedUrl() != null) {
+            containerView.getWebManager().sendHeadlessRequest();
+            return;
+        }
+        // add view and load url
         addViewIfNotAdded();
         loadWebView(null, null);
     }
@@ -111,6 +115,21 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private void loadWebView(final String baseUrl, Uri uri) {
         final OtplessContainerView containerView = wContainer.get();
         if (containerView == null || containerView.getWebView() == null) return;
+        if (this.isHeadless) {
+            final Uri.Builder builder = Uri.parse(getFirstLoadingUrl()).buildUpon();
+            builder.appendQueryParameter("isHeadless", String.valueOf(true));
+            if (uri != null) {
+                String code = uri.getQueryParameter("code");
+                this.headlessRequest.setCode(code);
+                // check if url is already loaded call the javascript directly
+                if (containerView.getWebView().getLoadedUrl() != null) {
+                    containerView.getWebManager().sendHeadlessRequest();
+                    return;
+                }
+            }
+            containerView.getWebView().loadWebUrl(builder.build().toString());
+            return;
+        }
         if (baseUrl == null) {
             String firstLoadingUrl = getFirstLoadingUrl();
             if (uri == null) {
@@ -128,22 +147,29 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private String getFirstLoadingUrl() {
         final Uri.Builder urlToLoad = Uri.parse(OtplessViewImpl.BASE_LOADING_URL).buildUpon();
         urlToLoad.appendPath("appid");
-        urlToLoad.appendPath(this.mOtplessRequest.getAppId());
-        // check for additional json params while loading
-        final JSONObject extraParams = mOtplessRequest.toJsonObj();
-        try {
-            String methodName = extraParams.optString("method").toLowerCase();
-            if (methodName.equals("get")) {
-                // add the params in url
-                final JSONObject params = extraParams.getJSONObject("params");
-                for (Iterator<String> it = params.keys(); it.hasNext(); ) {
-                    String key = it.next();
-                    final String value = params.optString(key);
-                    if (value.isEmpty()) continue;
-                    urlToLoad.appendQueryParameter(key, value);
+        final String loginUrl;
+        if (this.isHeadless) {
+            urlToLoad.appendPath(this.headlessRequest.getAppId());
+            loginUrl = "otpless." + this.headlessRequest.getAppId().toLowerCase(Locale.US) + "://otpless";
+        } else {
+            urlToLoad.appendPath(this.mOtplessRequest.getAppId());
+            // check for additional json params while loading
+            final JSONObject extraParams = mOtplessRequest.toJsonObj();
+            try {
+                String methodName = extraParams.optString("method").toLowerCase();
+                if (methodName.equals("get")) {
+                    // add the params in url
+                    final JSONObject params = extraParams.getJSONObject("params");
+                    for (Iterator<String> it = params.keys(); it.hasNext(); ) {
+                        String key = it.next();
+                        final String value = params.optString(key);
+                        if (value.isEmpty()) continue;
+                        urlToLoad.appendQueryParameter(key, value);
+                    }
                 }
+            } catch (JSONException ignore) {
             }
-        } catch (JSONException ignore) {
+            loginUrl = "otpless." + this.mOtplessRequest.getAppId().toLowerCase(Locale.US) + "://otpless";
         }
         // adding package name
         final String packageName = this.activity.getPackageName();
@@ -156,7 +182,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         for (final Triple<String, String, Boolean> installStatus : messagingApps) {
             urlToLoad.appendQueryParameter("has" + installStatus.getFirst(), String.valueOf(installStatus.getThird()));
         }
-        final String loginUrl = "otpless." + this.mOtplessRequest.getAppId().toLowerCase(Locale.US) + "://otpless";
         urlToLoad.appendQueryParameter("login_uri", loginUrl);
         urlToLoad.appendQueryParameter("nbbs", String.valueOf(this.backSubscription));
         urlToLoad.appendQueryParameter("inid", this.installId);
@@ -168,6 +193,22 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     public void setCallback(@NonNull final OtplessRequest request, final OtplessUserDetailCallback callback) {
         this.mOtplessRequest = request;
         this.detailCallback = callback;
+        this.isHeadless = false;
+    }
+
+    @Override
+    public void setHeadlessCallback(@NonNull final HeadlessRequest request, final HeadlessResponseCallback callback) {
+        // setting configuration
+        this.isHeadless = true;
+        // setting request and callback
+        this.headlessRequest = request;
+        this.headlessResponseCallback = callback;
+        if (activity.getIntent() == null) return;
+        Uri uri = activity.getIntent().getData();
+        // check for headless and onetap special case
+        if (uri == null && this.isOneTapEnabled) {
+            handleHeadlessAndOnetapSpecialCase();
+        }
     }
 
     @Override
@@ -177,17 +218,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     @Override
     public void onVerificationResult(int resultCode, JSONObject jsonObject) {
-        // if login page is not enable and show button is enabled
-        // show sign in button
-        if (mShowOtplessFab) {
-            // check if button is already added
-            final Button btn = wFabButton.get();
-            if (btn == null) {
-                addFabOnDecor();
-            } else {
-                btn.setVisibility(View.VISIBLE);
-            }
-        }
         if (this.detailCallback != null) {
             final OtplessResponse response = new OtplessResponse();
             if (resultCode == Activity.RESULT_CANCELED) {
@@ -210,7 +240,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     @Override
     public JSONObject getExtraParams() {
-        return this.mOtplessRequest.toJsonObj();
+        return this.isHeadless ? this.headlessRequest.makeJson() : this.mOtplessRequest.toJsonObj();
     }
 
     @Override
@@ -231,6 +261,8 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         if (manager.getBackSubscription()) {
             // back-press has been consumed
             webView.callWebJs("onHardBackPressed");
+        } else if (this.isHeadless) {
+            return false;
         } else {
             // remove the view
             onVerificationResult(Activity.RESULT_CANCELED, null);
@@ -238,11 +270,31 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         return true;
     }
 
+    private void handleHeadlessAndOnetapSpecialCase() {
+        // if one tap is enabled load the url here
+        addViewIfNotAdded();
+        final OtplessContainerView containerView = wContainer.get();
+        if (containerView == null || containerView.getWebView() == null) return;
+        final Uri.Builder builder = Uri.parse(getFirstLoadingUrl()).buildUpon();
+        builder.appendQueryParameter("isHeadless", String.valueOf(true));
+        final SharedPreferences pref = activity.getPreferences(MODE_PRIVATE);
+        final String plov = pref.getString("plov", "");
+        if (!plov.isEmpty()) {
+            builder.appendQueryParameter("plov", plov);
+        }
+        containerView.getWebView().loadWebUrl(builder.build().toString());
+    }
+
     @Override
     public boolean verifyIntent(Intent intent) {
         Uri uri = intent.getData();
         if (uri == null) return false;
         if (!"otpless".equals(uri.getHost())) return false;
+        // request type solution for future use
+        final String requestType = uri.getQueryParameter("requestType");
+        if ("headless".equals(requestType)) {
+            this.isHeadless = true;
+        }
         // check if passed deeplink is having uri query param then open that is chrome custom tab
         final String otplessCode = uri.getQueryParameter("uri");
         if (Utility.isValid(otplessCode)) {
@@ -293,7 +345,15 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         }
         // check if view inflated is already present or not
         View _container = parent.findViewWithTag(VIEW_TAG_NAME);
-        if (_container != null) return;
+        if (_container != null) {
+            if (this.isHeadless) {
+                ((OtplessContainerView)_container).enableHeadlessConfig();
+            } else {
+                ((OtplessContainerView)_container).disableHeadlessConfig();
+                ((OtplessContainerView)_container).setUiConfiguration(mOtplessRequest.toJsonObj());
+            }
+            return;
+        }
         // add the view
         final OtplessContainerView containerView = new OtplessContainerView(activity);
         containerView.setTag(VIEW_TAG_NAME);
@@ -305,7 +365,11 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         }
         containerView.isToShowLoader = this.isLoaderVisible;
         containerView.isToShowRetry = this.isRetryVisible;
-        containerView.setUiConfiguration(mOtplessRequest.toJsonObj());
+        if (this.isHeadless) {
+            containerView.enableHeadlessConfig();
+        } else {
+            containerView.setUiConfiguration(mOtplessRequest.toJsonObj());
+        }
         parent.addView(containerView);
         wContainer = new WeakReference<>(containerView);
         OtplessNetworkManager.getInstance().addListeners(activity, this);
@@ -432,116 +496,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     }
 
     @Override
-    public void setFabConfig(final FabButtonAlignment alignment, final int sideMargin, final int bottomMargin) {
-        mAlignment = alignment;
-        switch (alignment) {
-            case BottomLeft:
-            case BottomRight: {
-                if (sideMargin > 0) {
-                    mSideMargin = sideMargin;
-                }
-                if (bottomMargin > 0) {
-                    mBottomMargin = bottomMargin;
-                }
-            }
-            break;
-            case BottomCenter:
-                if (bottomMargin > 0) {
-                    mBottomMargin = bottomMargin;
-                }
-        }
-    }
-
-    @Override
-    public void showOtplessFab(boolean isToShow) {
-        this.mShowOtplessFab = isToShow;
-    }
-
-    private void addFabOnDecor() {
-        if (wFabButton.get() != null) return;
-        final ViewGroup parentView = activity.findViewById(android.R.id.content);
-        if (parentView == null) return;
-        final Button button = (Button) activity.getLayoutInflater().inflate(R.layout.otpless_fab_button, parentView, false);
-        button.setOnClickListener(v -> onFabButtonClicked());
-        button.setText(mFabText);
-        final ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) button.getLayoutParams();
-        // region add the margin
-        final int screenWidth = parentView.getWidth();
-        final int screenHeight = parentView.getHeight();
-        final int buttonWidth = dpToPixel(ButtonWidth);
-        final int buttonHeight = dpToPixel(ButtonHeight);
-        switch (mAlignment) {
-            case Center: {
-                // in center case draw of button will be
-                int x = (screenWidth - buttonWidth) / 2;
-                int y = ((screenHeight - buttonHeight) / 2);
-                params.setMargins(x, y, 0, 0);
-            }
-            break;
-            // margin calculation excludes the height of status bar while setting and we are calculating
-            // the margin with reference to full screen that's way status bar height is added
-            case BottomRight: {
-                int marginEnd = dpToPixel(mSideMargin);
-                int marginBottom = dpToPixel(mBottomMargin);
-                int x = screenWidth - (buttonWidth + marginEnd);
-                int y = screenHeight - (buttonHeight + marginBottom);
-                params.setMargins(x, y, 0, 0);
-            }
-            break;
-            case BottomLeft: {
-                int marginStart = dpToPixel(mSideMargin);
-                int marginBottom = dpToPixel(mBottomMargin);
-                int y = screenHeight - (buttonHeight + marginBottom);
-                params.setMargins(marginStart, y, 0, 0);
-            }
-            break;
-            case BottomCenter: {
-                int x = (screenWidth - buttonWidth) / 2;
-                int marginBottom = dpToPixel(mBottomMargin);
-                int y = screenHeight - (buttonHeight + marginBottom);
-                params.setMargins(x, y, 0, 0);
-            }
-            break;
-        }
-        // endregion
-        parentView.addView(button);
-        wFabButton = new WeakReference<>(button);
-    }
-
-    private int dpToPixel(int dp) {
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) dp, activity.getResources().getDisplayMetrics());
-    }
-
-    private void onFabButtonClicked() {
-        final View fBtn = wFabButton.get();
-        if (fBtn != null) {
-            // make button invisible after first callback
-            fBtn.setVisibility(View.INVISIBLE);
-        }
-        startOtpless();
-    }
-
-    private void removeFabFromDecor() {
-        final Button fab = wFabButton.get();
-        if (fab == null) return;
-        final ViewGroup parentView = activity.findViewById(android.R.id.content);
-        if (parentView == null) return;
-        parentView.removeView(fab);
-        wFabButton = new WeakReference<>(null);
-    }
-
-    @Override
-    public void onSignInCompleted() {
-        removeFabFromDecor();
-    }
-
-    @Override
-    public void setFabText(final String text) {
-        if (text == null || text.length() == 0) return;
-        this.mFabText = text;
-    }
-
-    @Override
     public void hideContainerView() {
         isContainerViewInvisible = true;
     }
@@ -550,6 +504,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     public void showOtplessLoginPage(@NonNull final OtplessRequest request, OtplessUserDetailCallback callback) {
         this.detailCallback = callback;
         this.mOtplessRequest = request;
+        this.isHeadless = false;
         addViewIfNotAdded();
         loadWebView(null, null);
     }
@@ -597,5 +552,20 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
             otplessContainerView.getWebManager()
                     .onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    @Override
+    public void onHeadlessResult(HeadlessResponse response, boolean closeView) {
+        if (this.headlessResponseCallback != null) {
+            this.headlessResponseCallback.onHeadlessResponse(response);
+        }
+        if (closeView) {
+            removeView();
+        }
+    }
+
+    @Override
+    public void enableOneTap(final boolean isEnable) {
+        this.isOneTapEnabled = isEnable;
     }
 }

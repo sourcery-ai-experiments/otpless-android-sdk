@@ -18,9 +18,11 @@ import androidx.annotation.Nullable;
 import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest;
 import com.google.android.gms.auth.api.identity.Identity;
 import com.otpless.BuildConfig;
+import com.otpless.dto.HeadlessResponse;
 import com.otpless.dto.Triple;
 import com.otpless.dto.Tuple;
 import com.otpless.main.NativeWebListener;
+import com.otpless.main.OtplessTruIdManager;
 import com.otpless.main.WebActivityContract;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
@@ -45,7 +47,6 @@ public class NativeWebManager implements OtplessWebListener {
     private final OtplessWebView mWebView;
     @NonNull
     private final WebActivityContract contract;
-
     private boolean mBackSubscription = false;
 
     private NativeWebListener nativeWebListener;
@@ -200,10 +201,11 @@ public class NativeWebManager implements OtplessWebListener {
     @Override
     public void extraParams() {
         final JSONObject result;
-        if (contract.getExtraParams() == null) {
+        final JSONObject temp = contract.getExtraParams();
+        if (temp == null) {
             result = new JSONObject();
         } else {
-            result = contract.getExtraParams();
+            result = temp;
         }
         mActivity.runOnUiThread(() -> {
             mWebView.callWebJs("onExtraParamResult", result.toString());
@@ -301,6 +303,30 @@ public class NativeWebManager implements OtplessWebListener {
         });
     }
 
+    // key 20
+    @Override
+    public void sendHeadlessRequest() {
+        Log.d("Otpless", "send headless request called");
+        final JSONObject extras = contract.getExtraParams();
+        if (extras == null) return;
+        callHeadlessRequestToWeb(extras);
+    }
+
+    public void callHeadlessRequestToWeb(JSONObject json) {
+        mWebView.callWebJs("headlessRequest", json.toString());
+    }
+
+    // key 21
+    @Override
+    public void sendHeadlessResponse(@NonNull JSONObject response, boolean closeView) {
+        HeadlessResponse headlessResponse;
+        final String responseType = response.optString("responseType");
+        final int statusCode = response.optInt("statusCode", 0);
+        final JSONObject resp = response.optJSONObject("response");
+        mActivity.runOnUiThread(() -> this.contract.onHeadlessResult(
+                new HeadlessResponse(responseType, response, statusCode), closeView));
+    }
+
     public void onPhoneNumberSelectionResult(final Tuple<String, Exception> data) {
         if (data.getSecond() == null) {
             mWebView.callWebJs("onPhoneNumberSelectionSuccess", data.getFirst());
@@ -332,5 +358,25 @@ public class NativeWebManager implements OtplessWebListener {
                 onPhoneNumberSelectionResult(new Tuple<>(null, new Exception("User cancelled the hint selection")));
             }
         }
+    }
+
+    // key 42
+    @Override
+    public void openTruIdSdk(@NonNull final String url, @NonNull String accessToken, boolean isDebug) {
+        final JSONObject response;
+        if (accessToken.isEmpty()) {
+            response = OtplessTruIdManager.openWithDataCellular(
+                    mActivity.getApplicationContext(), url, isDebug
+            );
+        } else {
+            response = OtplessTruIdManager.openWithDataCellularAndAccessToken(
+                    mActivity.getApplicationContext(), url, accessToken, isDebug
+            );
+        }
+        final String responseString = response.toString();
+        if (BuildConfig.DEBUG) {
+            Log.d("Otpless", responseString);
+        }
+        mWebView.callWebJs("onTruIdSdkResponse", responseString);
     }
 }

@@ -12,14 +12,13 @@ import java.util.Map;
 
 public class OtplessRequest {
 
-    @NonNull final String appId;
     @NonNull
     private String uxmode = "";
-
     @NonNull
     private String locale = "";
-
     private final HashMap<String, String> mExtras = new HashMap<>();
+    @NonNull
+    private final String appId;
 
     public OtplessRequest(@NonNull final String appId) {
         this.appId = appId;

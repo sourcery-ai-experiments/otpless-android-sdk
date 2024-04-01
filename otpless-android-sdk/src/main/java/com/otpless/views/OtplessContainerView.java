@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.otpless.R;
+import com.otpless.dto.HeadlessResponse;
 import com.otpless.main.OtplessEventCode;
 import com.otpless.main.OtplessEventData;
 import com.otpless.main.OtplessViewContract;
@@ -44,6 +45,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
 
     public boolean isToShowLoader = true;
     public boolean isToShowRetry = true;
+    public boolean isHeadless = false;
     @Nullable
     private JSONObject mColorConfig;
 
@@ -108,7 +110,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
             switch (loadingStatus.getLoadingStatus()) {
                 case InProgress:
                 case Started:
-                    if (!isToShowLoader) return;
+                    if (!isToShowLoader || isHeadless) return;
                     showLoader();
                     break;
                 case Failed:
@@ -135,6 +137,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
                         }
                         //endregion
                     }
+                    if (this.isHeadless) break;
                     if (!isToShowRetry) {
                         hideLoader();
                         break;
@@ -147,7 +150,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
                     showRetry(errorMessage);
                     break;
                 case Success:
-                    if (!isToShowLoader) return;
+                    if (!isToShowLoader || this.isHeadless) return;
                     hideLoader();
             }
         });
@@ -206,7 +209,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
 
     @Override
     public ViewGroup getParentView() {
-        return this.parentVg;
+        return this;
     }
 
     @Override
@@ -284,5 +287,24 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
             }
         } catch (JSONException ignore) {
         }
+    }
+
+    public void enableHeadlessConfig() {
+        this.isHeadless = true;
+        ViewGroup.LayoutParams params = this.getLayoutParams();
+        params.height = 0;
+        this.setLayoutParams(params);
+    }
+
+    public void disableHeadlessConfig() {
+        this.isHeadless = false;
+        ViewGroup.LayoutParams params = this.getLayoutParams();
+        params.height = ViewGroup.LayoutParams.MATCH_PARENT;
+        this.setLayoutParams(params);
+    }
+
+    @Override
+    public void onHeadlessResult(HeadlessResponse response, boolean closeView) {
+        if (this.viewContract != null) this.viewContract.onHeadlessResult(response, closeView);
     }
 }
