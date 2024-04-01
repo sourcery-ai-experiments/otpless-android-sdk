@@ -20,6 +20,8 @@ import com.otpless.dto.OtplessResponse;
 import com.otpless.main.OtplessManager;
 import com.otpless.main.OtplessView;
 
+import org.json.JSONObject;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
 
     private HeadlessChannelType channelType;
     private TextView headlessResponseTv;
+
+    final HeadlessRequest request = new HeadlessRequest("5E62ZCANETD9URNXPZ80");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +55,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private HeadlessRequest getHeadlessRequest() {
-        final HeadlessRequest request = new HeadlessRequest();
-        request.setAppId("5E62ZCANETD9URNXPZ80");
         final String input = inputEditText.getText().toString();
 
         if (!input.isEmpty()) {
@@ -64,7 +66,8 @@ public class MainActivity extends AppCompatActivity {
                 request.setEmail(input);
             }
         } else {
-            request.setChannelType(this.channelType);
+            if (this.channelType != null)
+                request.setChannelType(this.channelType);
         }
         final String otp = otpEditText.getText().toString();
         if (!otp.isEmpty()) request.setOtp(otp);
@@ -101,7 +104,6 @@ public class MainActivity extends AppCompatActivity {
                     channelType = HeadlessChannelType.MICROSOFT;
                     break;
             }
-            otplessView.setHeadlessCallback(getHeadlessRequest(), this::onHeadlessCallback);
         });
         inputEditText = findViewById(R.id.input_text_layout);
     }
@@ -114,9 +116,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onHeadlessCallback(@NonNull final HeadlessResponse response) {
-        String message = response.toString();
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-        headlessResponseTv.setText(message);
+        if (response.getStatusCode() == 200) {
+            JSONObject successResponse = response.getResponse();
+        } else {
+            String error = response.getResponse().optString("errorMessage");
+        }
+        headlessResponseTv.setText(response.toString());
     }
 
     private void onOtplessCallback(OtplessResponse response) {

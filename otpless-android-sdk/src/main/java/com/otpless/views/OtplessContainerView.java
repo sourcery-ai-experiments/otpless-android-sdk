@@ -110,7 +110,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
             switch (loadingStatus.getLoadingStatus()) {
                 case InProgress:
                 case Started:
-                    if (!isToShowLoader) return;
+                    if (!isToShowLoader || isHeadless) return;
                     showLoader();
                     break;
                 case Failed:
@@ -137,6 +137,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
                         }
                         //endregion
                     }
+                    if (this.isHeadless) break;
                     if (!isToShowRetry) {
                         hideLoader();
                         break;
@@ -149,7 +150,7 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
                     showRetry(errorMessage);
                     break;
                 case Success:
-                    if (!isToShowLoader) return;
+                    if (!isToShowLoader || this.isHeadless) return;
                     hideLoader();
             }
         });

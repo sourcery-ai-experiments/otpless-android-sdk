@@ -11,8 +11,8 @@ import org.json.JSONObject;
 
 public class HeadlessRequest {
 
-    @NonNull
-    private HeadlessChannel channel = HeadlessChannel.PHONE;
+    @Nullable
+    private HeadlessChannel channel = null;
     private String phoneNumber;
     private String email;
     private String otp;
@@ -22,10 +22,14 @@ public class HeadlessRequest {
     private String countryCode = "";
 
     @NonNull
-    private String appId = "";
+    private final String appId;
 
     @Nullable
-    private HeadlessChannelType channelType;
+    private String channelType;
+
+    public HeadlessRequest(@NonNull final String appId) {
+        this.appId = appId;
+    }
 
     public void setPhoneNumber(String countryCode, String phoneNumber) {
         this.phoneNumber = phoneNumber;
@@ -51,6 +55,13 @@ public class HeadlessRequest {
     }
 
     public void setChannelType(@NonNull HeadlessChannelType channelType) {
+        this.channelType = channelType.getChannelTypeName();
+        channel = HeadlessChannel.OAUTH;
+        phoneNumber = null;
+        email = null;
+    }
+
+    public void setChannelType(@NonNull final String channelType) {
         this.channelType = channelType;
         channel = HeadlessChannel.OAUTH;
         phoneNumber = null;
@@ -67,15 +78,12 @@ public class HeadlessRequest {
         return appId;
     }
 
-    public void setAppId(@NonNull String appId) {
-        this.appId = appId;
-    }
-
     public boolean hasCodeOrOtp() {
         return Utility.isValid(this.code, this.otp);
     }
 
     public JSONObject makeJson() {
+        if (this.channel == null) return null;
         final JSONObject requestJson = new JSONObject();
         try {
             requestJson.put("channel", this.channel.getChannelName());
@@ -89,7 +97,7 @@ public class HeadlessRequest {
                     break;
                 case OAUTH:
                     if (channelType != null) {
-                        requestJson.put("channelType", this.channelType.getChannelTypeName());
+                        requestJson.put("channelType", this.channelType);
                     }
                     break;
             }

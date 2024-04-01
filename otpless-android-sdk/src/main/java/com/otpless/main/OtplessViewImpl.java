@@ -250,14 +250,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         if (manager == null) return false;
         final OtplessWebView webView = wContainer.get().getWebView();
         if (webView == null) return false;
-        if (this.isHeadless) {
-            final HeadlessResponse response = HeadlessResponse.getBackPressedResponse(
-                    this.headlessRequest.getChannel().getChannelName()
-            );
-            this.headlessResponseCallback.onHeadlessResponse(response);
-            removeView();
-            return true;
-        }
         if (this.eventCallback != null && this.backSubscription) {
             if (manager.getBackSubscription()) {
                 webView.callWebJs("onHardBackPressed");
@@ -269,6 +261,8 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         if (manager.getBackSubscription()) {
             // back-press has been consumed
             webView.callWebJs("onHardBackPressed");
+        } else if (this.isHeadless) {
+            return false;
         } else {
             // remove the view
             onVerificationResult(Activity.RESULT_CANCELED, null);

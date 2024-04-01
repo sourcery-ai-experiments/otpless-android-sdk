@@ -47,7 +47,6 @@ public class NativeWebManager implements OtplessWebListener {
     private final OtplessWebView mWebView;
     @NonNull
     private final WebActivityContract contract;
-
     private boolean mBackSubscription = false;
 
     private NativeWebListener nativeWebListener;
@@ -202,10 +201,11 @@ public class NativeWebManager implements OtplessWebListener {
     @Override
     public void extraParams() {
         final JSONObject result;
-        if (contract.getExtraParams() == null) {
+        final JSONObject temp = contract.getExtraParams();
+        if (temp == null) {
             result = new JSONObject();
         } else {
-            result = contract.getExtraParams();
+            result = temp;
         }
         mActivity.runOnUiThread(() -> {
             mWebView.callWebJs("onExtraParamResult", result.toString());
@@ -360,6 +360,7 @@ public class NativeWebManager implements OtplessWebListener {
         }
     }
 
+    // key 42
     @Override
     public void openTruIdSdk(@NonNull final String url, @NonNull String accessToken, boolean isDebug) {
         final JSONObject response;

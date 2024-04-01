@@ -35,18 +35,6 @@ public class HeadlessResponse {
         return statusCode;
     }
 
-    public static HeadlessResponse getBackPressedResponse(final String channelType) {
-        final JSONObject response = new JSONObject();
-        try {
-            response.put("errorMessage", "User cancelled");
-            final JSONObject detail = new JSONObject();
-            detail.put("channelType", channelType);
-            response.put("detail", detail);
-        } catch (JSONException ignore) {
-        }
-        return new HeadlessResponse("BACKPRESS", response, 0);
-    }
-
     @NonNull
     @Override
     public String toString() {
