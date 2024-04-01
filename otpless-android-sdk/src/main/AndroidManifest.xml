@@ -20,7 +20,4 @@
         <package android:name="org.thoughtcrime.securesms"/>
         <package android:name="im.thebot.messenger"/>
     </queries>
-<!--    <uses-sdk-->
-<!--        android:minSdkVersion="21"-->
-<!--        tools:overrideLibrary="id.tru.sdk"/>-->
 </manifest>
