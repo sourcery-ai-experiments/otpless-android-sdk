@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private HeadlessChannelType channelType;
     private TextView headlessResponseTv;
 
-    final HeadlessRequest request = new HeadlessRequest("5E62ZCANETD9URNXPZ80");
+    final HeadlessRequest request = new HeadlessRequest("YOUR_APP_ID");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
             otplessView.startHeadless(getHeadlessRequest(), this::onHeadlessCallback);
         });
         findViewById(R.id.show_login_btn).setOnClickListener(v -> {
-            final OtplessRequest request = new OtplessRequest("5E62ZCANETD9URNXPZ80");
+            final OtplessRequest request = new OtplessRequest("YOUR_APP_ID");
             otplessView.setCallback(request, this::onOtplessCallback);
             otplessView.showOtplessLoginPage(request, this::onOtplessCallback);
         });
