@@ -22,7 +22,6 @@ import com.otpless.dto.HeadlessResponse;
 import com.otpless.dto.Triple;
 import com.otpless.dto.Tuple;
 import com.otpless.main.NativeWebListener;
-import com.otpless.main.OtplessTruIdManager;
 import com.otpless.main.WebActivityContract;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
@@ -358,25 +357,5 @@ public class NativeWebManager implements OtplessWebListener {
                 onPhoneNumberSelectionResult(new Tuple<>(null, new Exception("User cancelled the hint selection")));
             }
         }
-    }
-
-    // key 42
-    @Override
-    public void openTruIdSdk(@NonNull final String url, @NonNull String accessToken, boolean isDebug) {
-        final JSONObject response;
-        if (accessToken.isEmpty()) {
-            response = OtplessTruIdManager.openWithDataCellular(
-                    mActivity.getApplicationContext(), url, isDebug
-            );
-        } else {
-            response = OtplessTruIdManager.openWithDataCellularAndAccessToken(
-                    mActivity.getApplicationContext(), url, accessToken, isDebug
-            );
-        }
-        final String responseString = response.toString();
-        if (BuildConfig.DEBUG) {
-            Log.d("Otpless", responseString);
-        }
-        mWebView.callWebJs("onTruIdSdkResponse", responseString);
     }
 }

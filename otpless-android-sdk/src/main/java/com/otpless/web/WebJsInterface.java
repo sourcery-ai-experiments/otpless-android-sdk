@@ -160,17 +160,6 @@ public class WebJsInterface {
                     }
                     this.mListener.sendHeadlessResponse(response, closeView);
                     break;
-                case 42: {
-                    final String url = getString(jsonObject, "url");
-                    if (url.isEmpty()) return;
-                    final String accessToken = getString(jsonObject, "accessToken");
-                    Boolean isDebug = getBoolean(jsonObject, "isDebug");
-                    if (isDebug == null) {
-                        isDebug = false;
-                    }
-                    this.mListener.openTruIdSdk(url, accessToken, isDebug);
-                    break;
-                }
             }
         } catch (JSONException e) {
             e.printStackTrace();
