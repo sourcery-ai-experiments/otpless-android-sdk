@@ -68,7 +68,7 @@ public class HeadlessRequest {
         email = null;
     }
 
-    @NonNull
+    @Nullable
     public HeadlessChannel getChannel() {
         return channel;
     }
@@ -83,10 +83,14 @@ public class HeadlessRequest {
     }
 
     public JSONObject makeJson() {
-        if (this.channel == null) return null;
         final JSONObject requestJson = new JSONObject();
         try {
-            requestJson.put("channel", this.channel.getChannelName());
+            if (this.channel == null) {
+                requestJson.put("channel", "");
+                return requestJson;
+            } else {
+                requestJson.put("channel", this.channel.getChannelName());
+            }
             switch (this.channel) {
                 case PHONE:
                     requestJson.put("phone", this.phoneNumber);

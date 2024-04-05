@@ -51,4 +51,17 @@ public class HeadlessResponse {
         }
         return builder.toString();
     }
+
+    public static HeadlessResponse makeInternetErrorResponse(final int errorCode, final String description) {
+        final JSONObject resp = new JSONObject();
+        try {
+            resp.put("errorMessage", "Internet Error");
+            final JSONObject detail = new JSONObject();
+            detail.put("errorCode", errorCode);
+            detail.put("description", description);
+            resp.put("details", detail);
+        } catch (JSONException ignore) {
+        }
+        return new HeadlessResponse("INTERNET_ERR", resp, 5002);
+    }
 }

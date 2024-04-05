@@ -114,30 +114,34 @@ public class OtplessContainerView extends FrameLayout implements WebActivityCont
                     showLoader();
                     break;
                 case Failed:
-                    if (loadingStatus.getLoadingStatus() == LoadingStatus.Failed) {
-                        //region send event because of error
-                        final int errorCode = loadingStatus.getErrorCode();
-                        if (errorCode == WebViewClient.ERROR_CONNECT || errorCode == WebViewClient.ERROR_TIMEOUT ||
-                                errorCode == WebViewClient.ERROR_HOST_LOOKUP || errorCode == WebViewClient.ERROR_BAD_URL ||
-                                errorCode == WebViewClient.ERROR_UNKNOWN) {
-                            if (webManager != null && webManager.getNativeWebListener() != null) {
-                                final JSONObject jsonObject = new JSONObject();
-                                try {
-                                    jsonObject.put("errorCode", loadingStatus.getErrorCode());
-                                    jsonObject.put("description", loadingStatus.getDescription());
-                                } catch (JSONException ignore) {
-                                }
-                                final OtplessEventData eventData = new OtplessEventData(
-                                        OtplessEventCode.NO_INTERNET, jsonObject
-                                );
-                                webManager.getNativeWebListener().onOtplessEvent(
-                                        eventData
-                                );
+                    //region send event because of error
+                    final int errorCode = loadingStatus.getErrorCode();
+                    if (errorCode == WebViewClient.ERROR_CONNECT || errorCode == WebViewClient.ERROR_TIMEOUT ||
+                            errorCode == WebViewClient.ERROR_HOST_LOOKUP || errorCode == WebViewClient.ERROR_BAD_URL ||
+                            errorCode == WebViewClient.ERROR_UNKNOWN) {
+                        if (webManager != null && webManager.getNativeWebListener() != null) {
+                            final JSONObject jsonObject = new JSONObject();
+                            try {
+                                jsonObject.put("errorCode", loadingStatus.getErrorCode());
+                                jsonObject.put("description", loadingStatus.getDescription());
+                            } catch (JSONException ignore) {
                             }
+                            final OtplessEventData eventData = new OtplessEventData(
+                                    OtplessEventCode.NO_INTERNET, jsonObject
+                            );
+                            webManager.getNativeWebListener().onOtplessEvent(
+                                    eventData
+                            );
                         }
-                        //endregion
                     }
-                    if (this.isHeadless) break;
+                    //endregion
+                    if (this.isHeadless) {
+                        onHeadlessResult(HeadlessResponse.makeInternetErrorResponse(
+                                        loadingStatus.getErrorCode(), loadingStatus.getDescription()
+                                ), true
+                        );
+                        break;
+                    }
                     if (!isToShowRetry) {
                         hideLoader();
                         break;

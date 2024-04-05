@@ -556,7 +556,10 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     @Override
     public void onHeadlessResult(HeadlessResponse response, boolean closeView) {
-        if (this.headlessResponseCallback != null) {
+        // if status code is 5002 (internet error) and onetap is loading, do not the response
+        if (this.headlessResponseCallback != null &&
+                !(response.getStatusCode() == 5002 && (this.headlessRequest == null || this.headlessRequest.getChannel() == null))
+        ) {
             this.headlessResponseCallback.onHeadlessResponse(response);
         }
         if (closeView) {
