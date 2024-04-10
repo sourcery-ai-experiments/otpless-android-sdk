@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +40,7 @@ import com.otpless.web.OtplessWebView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -70,6 +72,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private boolean isHeadless = false;
     private boolean isOneTapEnabled = true;
     private HeadlessRequest headlessRequest;
+    @NonNull private String appId = "";
 
     private HeadlessResponseCallback headlessResponseCallback;
     private final Queue<ViewGroup> helpQueue = new LinkedList<>();
@@ -94,10 +97,41 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         return this.activity;
     }
 
+    void onActivitySaveInstance(@NonNull final Bundle outBundle) {
+        outBundle.putBoolean("otpless_isonetapenabled", this.isOneTapEnabled);
+        if (this.headlessRequest != null) {
+            outBundle.putSerializable("otpless_headless_request", this.headlessRequest);
+        }
+    }
+
+    @Override
+    public void initHeadless(@NonNull String appId, @Nullable Bundle savedInstanceState) {
+        this.appId = appId;
+        this.isHeadless = true;
+        if (savedInstanceState != null) {
+            restoreSavedInstance(savedInstanceState);
+        }
+        if (activity.getIntent() == null) return;
+        Uri uri = activity.getIntent().getData();
+        // check for headless and onetap special case
+        if (uri == null && this.isOneTapEnabled) {
+            this.headlessRequest = new HeadlessRequest();
+            handleHeadlessAndOnetapSpecialCase();
+        }
+    }
+
+    private void restoreSavedInstance(@NonNull Bundle savedInstanceState) {
+        if (savedInstanceState.containsKey("otpless_isonetapenabled")) {
+            this.isOneTapEnabled = savedInstanceState.getBoolean("otpless_isonetapenabled");
+        }
+        final Serializable request = savedInstanceState.getSerializable("otpless_headless_request");
+        if (request instanceof HeadlessRequest) {
+            this.headlessRequest = (HeadlessRequest) request;
+        }
+    }
+
     @Override
     public void startHeadless(@NonNull final HeadlessRequest request, final HeadlessResponseCallback callback) {
-        // configuration setting
-        this.isHeadless = true;
         // request and callback setting
         this.headlessRequest = request;
         this.headlessResponseCallback = callback;
@@ -147,13 +181,8 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private String getFirstLoadingUrl() {
         final Uri.Builder urlToLoad = Uri.parse(OtplessViewImpl.BASE_LOADING_URL).buildUpon();
         urlToLoad.appendPath("appid");
-        final String loginUrl;
-        if (this.isHeadless) {
-            urlToLoad.appendPath(this.headlessRequest.getAppId());
-            loginUrl = "otpless." + this.headlessRequest.getAppId().toLowerCase(Locale.US) + "://otpless";
-        } else {
-            urlToLoad.appendPath(this.mOtplessRequest.getAppId());
-            // check for additional json params while loading
+        urlToLoad.appendPath(this.appId);
+        if (!this.isHeadless) {
             final JSONObject extraParams = mOtplessRequest.toJsonObj();
             try {
                 String methodName = extraParams.optString("method").toLowerCase();
@@ -169,7 +198,6 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
                 }
             } catch (JSONException ignore) {
             }
-            loginUrl = "otpless." + this.mOtplessRequest.getAppId().toLowerCase(Locale.US) + "://otpless";
         }
         // adding package name
         final String packageName = this.activity.getPackageName();
@@ -182,6 +210,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         for (final Triple<String, String, Boolean> installStatus : messagingApps) {
             urlToLoad.appendQueryParameter("has" + installStatus.getFirst(), String.valueOf(installStatus.getThird()));
         }
+        final String loginUrl = "otpless." + this.appId.toLowerCase(Locale.US) + "://otpless";
         urlToLoad.appendQueryParameter("login_uri", loginUrl);
         urlToLoad.appendQueryParameter("nbbs", String.valueOf(this.backSubscription));
         urlToLoad.appendQueryParameter("inid", this.installId);
@@ -191,24 +220,16 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     @Override
     public void setCallback(@NonNull final OtplessRequest request, final OtplessUserDetailCallback callback) {
+        this.appId = request.getAppId();
         this.mOtplessRequest = request;
         this.detailCallback = callback;
         this.isHeadless = false;
     }
 
     @Override
-    public void setHeadlessCallback(@NonNull final HeadlessRequest request, final HeadlessResponseCallback callback) {
-        // setting configuration
-        this.isHeadless = true;
+    public void setHeadlessCallback(final HeadlessResponseCallback callback) {
         // setting request and callback
-        this.headlessRequest = request;
         this.headlessResponseCallback = callback;
-        if (activity.getIntent() == null) return;
-        Uri uri = activity.getIntent().getData();
-        // check for headless and onetap special case
-        if (uri == null && this.isOneTapEnabled) {
-            handleHeadlessAndOnetapSpecialCase();
-        }
     }
 
     @Override
@@ -502,6 +523,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
 
     @Override
     public void showOtplessLoginPage(@NonNull final OtplessRequest request, OtplessUserDetailCallback callback) {
+        this.appId = request.getAppId();
         this.detailCallback = callback;
         this.mOtplessRequest = request;
         this.isHeadless = false;

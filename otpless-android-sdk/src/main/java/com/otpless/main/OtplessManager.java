@@ -98,7 +98,12 @@ public class OtplessManager {
 
         @Override
         public void onActivitySaveInstanceState(@NonNull Activity activity, @NonNull Bundle outState) {
-
+            for (OtplessViewImpl view : providedViewSet) {
+                if (view.getActivity() == activity) {
+                    view.onActivitySaveInstance(outState);
+                    break;
+                }
+            }
         }
 
         @Override

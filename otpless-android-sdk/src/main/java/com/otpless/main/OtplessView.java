@@ -1,8 +1,10 @@
 package com.otpless.main;
 
 import android.content.Intent;
+import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.otpless.dto.HeadlessRequest;
 import com.otpless.dto.OtplessRequest;
@@ -41,7 +43,9 @@ public interface OtplessView {
 
     void startHeadless(@NonNull final HeadlessRequest request, final HeadlessResponseCallback callback);
 
-    void setHeadlessCallback(@NonNull final HeadlessRequest request, final HeadlessResponseCallback callback);
+    void setHeadlessCallback(final HeadlessResponseCallback callback);
+
+    void initHeadless(@NonNull String appId, @Nullable Bundle savedInstanceState);
 
     default void enableOneTap(final boolean isEnable) {
     }

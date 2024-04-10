@@ -3,13 +3,13 @@ package com.otpless.dto;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.otpless.utils.Utility;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 
-public class HeadlessRequest {
+
+public class HeadlessRequest implements Serializable {
 
     @Nullable
     private HeadlessChannel channel = null;
@@ -21,14 +21,10 @@ public class HeadlessRequest {
     @NonNull
     private String countryCode = "";
 
-    @NonNull
-    private final String appId;
-
     @Nullable
     private String channelType;
 
-    public HeadlessRequest(@NonNull final String appId) {
-        this.appId = appId;
+    public HeadlessRequest() {
     }
 
     public void setPhoneNumber(String countryCode, String phoneNumber) {
@@ -71,15 +67,6 @@ public class HeadlessRequest {
     @Nullable
     public HeadlessChannel getChannel() {
         return channel;
-    }
-
-    @NonNull
-    public String getAppId() {
-        return appId;
-    }
-
-    public boolean hasCodeOrOtp() {
-        return Utility.isValid(this.code, this.otp);
     }
 
     public JSONObject makeJson() {

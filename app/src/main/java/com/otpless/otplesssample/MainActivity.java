@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     private HeadlessChannelType channelType;
     private TextView headlessResponseTv;
 
-    final HeadlessRequest request = new HeadlessRequest("YOUR_APP_ID");
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +41,8 @@ public class MainActivity extends AppCompatActivity {
         initTestingView();
         // copy this code in onCreate of your Login Activity
         otplessView = OtplessManager.getInstance().getOtplessView(this);
-        otplessView.setHeadlessCallback(getHeadlessRequest(), this::onHeadlessCallback);
+        otplessView.initHeadless("YOUR_APP_ID", savedInstanceState);
+        otplessView.setHeadlessCallback(this::onHeadlessCallback);
         findViewById(R.id.headless_sdk_btn).setOnClickListener(v -> {
             otplessView.startHeadless(getHeadlessRequest(), this::onHeadlessCallback);
         });
@@ -56,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
     private HeadlessRequest getHeadlessRequest() {
         final String input = inputEditText.getText().toString();
-
+        final HeadlessRequest request = new HeadlessRequest();
         if (!input.isEmpty()) {
             try {
                 // parse phone number
@@ -131,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
             final String token = response.getData().optString("token");
             Toast.makeText(this, token, Toast.LENGTH_LONG).show();
         }
+        headlessResponseTv.setText(response.toString());
     }
 
     @Override
