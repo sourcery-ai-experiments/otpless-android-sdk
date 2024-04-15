@@ -8,7 +8,6 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -59,6 +58,7 @@ public class ApiManager {
         mHandler.post(runnable);
     }
 
+    @SuppressWarnings("unused")
     void post(@NonNull final String mainUrl, @NonNull final JSONObject postData, @NonNull final ApiCallback<JSONObject> callback) {
         executeCall(() -> {
             try {
@@ -112,7 +112,7 @@ public class ApiManager {
                     for (final Iterator<String> iter = queryData.keys(); iter.hasNext(); ) {
                         final String key = iter.next();
                         final String value = queryData.optString(key);
-                        if (key.length() == 0) continue;
+                        if (key.isEmpty()) continue;
                         builder.appendQueryParameter(key, value);
                     }
                 }
@@ -147,7 +147,7 @@ public class ApiManager {
                     return;
                     // read the response
                 }
-                final Exception ex = new Exception("" + responseCode + " response code");
+                final Exception ex = new Exception(responseCode + " response code");
                 mUiHandler.post(() -> callback.onError(ex));
             } catch (Exception e) {
                 mUiHandler.post(() -> callback.onError(e));
@@ -160,6 +160,7 @@ public class ApiManager {
         get(eventUrl, eventParam, callback);
     }
 
+    @SuppressWarnings("unused")
     public void apiConfig(final ApiCallback<JSONObject> callback) {
         final String apiConfigUrl = "https://d1j61bbz9a40n6.cloudfront.net/sdk/config/prod/config.json";
         get(apiConfigUrl, null, callback);

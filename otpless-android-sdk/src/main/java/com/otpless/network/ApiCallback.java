@@ -1,7 +1,9 @@
 package com.otpless.network;
 
-public interface ApiCallback<T> {
-    void onSuccess(final T data);
+import androidx.annotation.NonNull;
 
-    void onError(final Exception exception);
+public interface ApiCallback<T> {
+    void onSuccess(@NonNull final T data);
+
+    void onError(@NonNull final Exception exception);
 }
