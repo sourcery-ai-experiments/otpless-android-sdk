@@ -1,8 +1,6 @@
 package com.otpless.network
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -16,14 +14,11 @@ import android.os.Looper
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
 import com.otpless.BuildConfig
 import org.json.JSONObject
 import java.util.Timer
 import java.util.TimerTask
-import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.schedule
-import kotlin.concurrent.withLock
 
 /**
  * CellularNetworkManager requests Cellular Network from the system to be available to
@@ -59,7 +54,7 @@ internal class OtplessCellularNetworkImpl(private val context: Context) : Otples
                     Log.d(TAG, "-> After forcing isAvailable? ${isCellularAvailable()}")
                     Log.d(TAG, "-> After forcing isBound? ${isCellularBoundToProcess()}")
                 }
-                ApiManager.getInstance().get(url.toString(), null, object : ApiCallback<JSONObject> {
+                ApiManager.getInstance().get(url, null, object : ApiCallback<JSONObject> {
                     override fun onError(exception: Exception) {
                         val response = makeErrorJson("sdk_api_error", exception.message ?: "Data connectivity error")
                         callback.onCellularDataResult(response)
@@ -86,76 +81,32 @@ internal class OtplessCellularNetworkImpl(private val context: Context) : Otples
     }
 
     private fun execute(onCompletion: (isSuccess: Boolean) -> Unit) {
-        try {
-            val lock = ReentrantLock()
-            val condition = lock.newCondition()
+        val capabilities = intArrayOf(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        val transportTypes = intArrayOf(NetworkCapabilities.TRANSPORT_CELLULAR)
 
-            val capabilities = intArrayOf(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-            val transportTypes = intArrayOf(NetworkCapabilities.TRANSPORT_CELLULAR)
-
-            forceCellular(capabilities, transportTypes) { isOnCellular ->
-                lock.withLock {
-                    // We have Mobile Data registered and bound for use
-                    // However, user may still have no data plan!
-                    onCompletion(isOnCellular)
-                    condition.signal()
-                }
-            }
-
-            lock.withLock {
-                condition.await()
-            }
-        } catch (ex: Exception) {
-            Log.d(TAG, "execute exception ${ex.message}")
-            onCompletion(false)
+        forceCellular(capabilities, transportTypes) { isOnCellular ->
+            onCompletion(isOnCellular)
         }
     }
 
-    /**
-     * Configures a network with the capabilities and transport types, registers it and when it is
-     * available calls onCompletion lambda with a value of true.
-     * 5/20 secs timeout applies if the network never registers, then the lambda is called with
-     * a value of false.
-     *
-     * Requests cellular network. Even though the device may have mobile data, and enabled,
-     * some Android devices may not show it on the available networks list. They tend to set WiFi
-     * as the default and active network. This method requests the mobile data network to be
-     * available, and when available it bind the network to the process to be used later.
-     *
-     * Whether Cellular Network is Active Network OR (Available and Bound to the process)
-     * isCellularActiveNetwork() || (isCellularAvailable() && isCellularBoundToProcess())
-     * OR NOT
-     * We are requesting cellular data network. If it it no disabled by the user or by network,
-     * it should be available. A further optimisation can be done perhaps, with helper check methods.
-     *
-     */
-    @Synchronized
     private fun forceCellular(
         capabilities: IntArray,
         transportTypes: IntArray,
         onCompletion: (isSuccess: Boolean) -> Unit
     ) {
         Log.d(TAG, "------ Forcing Cellular ------")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            if (ActivityCompat.checkSelfPermission(
-                    context, Manifest.permission.READ_PHONE_STATE
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                Log.d(TAG, "  Reading phone state permission is not available")
-                onCompletion(false)
-                return
-            }
+        try {
             if (!cellularInfo.isDataEnabled) {
                 Log.d(TAG, "Mobile Data is NOT enabled, we can not force cellular!")
-                Thread {
-                    Log.d(TAG, "Calling completion -- Is Main thread? ${isMainThread()}")
-                    onCompletion(false)
-                }.start()
+                onCompletion(false)
                 return
             } else {
                 Log.d(TAG, "-> Mobile Data is Enabled!")
             }
+        } catch (ex: Exception) {
+            Log.d(TAG, "-> error: ${ex.message}")
         }
+
 
         if (cellularNetworkCallBack == null) {
             cellularNetworkCallBack = object : ConnectivityManager.NetworkCallback() {

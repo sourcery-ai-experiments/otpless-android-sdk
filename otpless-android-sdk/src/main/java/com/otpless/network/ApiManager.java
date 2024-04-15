@@ -16,6 +16,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Iterator;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -104,10 +105,10 @@ public class ApiManager {
         });
     }
 
-    void get(@NonNull final String mainUrl, @Nullable final JSONObject queryData, @NonNull final ApiCallback<JSONObject> callback) {
+    void get(@NonNull final Uri mainUri, @Nullable final JSONObject queryData, @NonNull final ApiCallback<JSONObject> callback) {
         executeCall(() -> {
             try {
-                final Uri.Builder builder = Uri.parse(mainUrl).buildUpon();
+                final Uri.Builder builder = mainUri.buildUpon();
                 if (queryData != null) {
                     for (final Iterator<String> iter = queryData.keys(); iter.hasNext(); ) {
                         final String key = iter.next();
@@ -117,7 +118,12 @@ public class ApiManager {
                     }
                 }
                 final URL url = new URL(builder.build().toString());
-                final HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+                final HttpURLConnection conn;
+                if ("https".equals(mainUri.getScheme())) {
+                    conn = (HttpsURLConnection) url.openConnection();
+                } else {
+                    conn = (HttpURLConnection) url.openConnection();
+                }
                 conn.setRequestMethod("GET");
                 conn.setDoInput(true);
                 conn.setRequestProperty("Accept", "application/json");
@@ -157,12 +163,12 @@ public class ApiManager {
 
     public void pushEvents(final JSONObject eventParam, final ApiCallback<JSONObject> callback) {
         final String eventUrl = "https://mtkikwb8yc.execute-api.ap-south-1.amazonaws.com/prod/appevent";
-        get(eventUrl, eventParam, callback);
+        get(Uri.parse(eventUrl), eventParam, callback);
     }
 
     @SuppressWarnings("unused")
     public void apiConfig(final ApiCallback<JSONObject> callback) {
         final String apiConfigUrl = "https://d1j61bbz9a40n6.cloudfront.net/sdk/config/prod/config.json";
-        get(apiConfigUrl, null, callback);
+        get(Uri.parse(apiConfigUrl), null, callback);
     }
 }

@@ -64,7 +64,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private boolean isLoaderVisible = true;
     private boolean isRetryVisible = true;
     private boolean isContainerViewInvisible = false;
-    private static final String BASE_LOADING_URL = "https://otpless.com";
+    private static final String BASE_LOADING_URL = "https://otpless.tech";
 
     @NonNull String installId = "";
     @NonNull String trackingSessionId = "";

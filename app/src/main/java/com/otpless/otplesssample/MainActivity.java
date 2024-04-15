@@ -41,13 +41,13 @@ public class MainActivity extends AppCompatActivity {
         initTestingView();
         // copy this code in onCreate of your Login Activity
         otplessView = OtplessManager.getInstance().getOtplessView(this);
-        otplessView.initHeadless("YOUR_APP_ID", savedInstanceState);
+        otplessView.initHeadless("5E62ZCANETD9URNXPZ80", savedInstanceState);
         otplessView.setHeadlessCallback(this::onHeadlessCallback);
         findViewById(R.id.headless_sdk_btn).setOnClickListener(v -> {
             otplessView.startHeadless(getHeadlessRequest(), this::onHeadlessCallback);
         });
         findViewById(R.id.show_login_btn).setOnClickListener(v -> {
-            final OtplessRequest request = new OtplessRequest("YOUR_APP_ID");
+            final OtplessRequest request = new OtplessRequest("5E62ZCANETD9URNXPZ80");
             otplessView.setCallback(request, this::onOtplessCallback);
             otplessView.showOtplessLoginPage(request, this::onOtplessCallback);
         });
