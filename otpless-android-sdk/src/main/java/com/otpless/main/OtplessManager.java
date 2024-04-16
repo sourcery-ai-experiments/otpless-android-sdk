@@ -12,6 +12,7 @@ import java.util.HashSet;
 public class OtplessManager {
 
     private static OtplessManager sInstance = null;
+    public static final boolean IS_SILENT_AUTH_SUPPORTED = true;
     private final ActivityLifeManager lifeManager = new ActivityLifeManager();
     private final HashSet<OtplessViewImpl> providedViewSet = new HashSet<>();
 

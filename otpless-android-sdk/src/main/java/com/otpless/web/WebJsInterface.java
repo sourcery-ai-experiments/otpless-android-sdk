@@ -160,6 +160,11 @@ public class WebJsInterface {
                     }
                     this.mListener.sendHeadlessResponse(response, closeView);
                     break;
+                case 42:
+                    final String conUrl = getString(jsonObject, "url");
+                    if (conUrl.isEmpty()) return;
+                    this.mListener.getDataFromCellularNetwork(conUrl);
+                    break;
             }
         } catch (JSONException e) {
             e.printStackTrace();

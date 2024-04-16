@@ -22,9 +22,12 @@ import com.otpless.dto.HeadlessResponse;
 import com.otpless.dto.Triple;
 import com.otpless.dto.Tuple;
 import com.otpless.main.NativeWebListener;
+import com.otpless.main.OtplessManager;
 import com.otpless.main.WebActivityContract;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
+import com.otpless.network.OtplessCellularNetwork;
+import com.otpless.network.OtplessCellularNetworkImpl;
 import com.otpless.utils.OtpReaderManager;
 import com.otpless.utils.Utility;
 
@@ -49,11 +52,14 @@ public class NativeWebManager implements OtplessWebListener {
     private boolean mBackSubscription = false;
 
     private NativeWebListener nativeWebListener;
+    @NonNull
+    private final OtplessCellularNetwork otplessCellularNetwork;
 
     public NativeWebManager(@NonNull final Activity activity, @NonNull final OtplessWebView webView, @NonNull WebActivityContract contract) {
         mActivity = activity;
         mWebView = webView;
         this.contract = contract;
+        this.otplessCellularNetwork = new OtplessCellularNetworkImpl(activity);
     }
 
     // key 1
@@ -165,6 +171,7 @@ public class NativeWebManager implements OtplessWebListener {
         }
         map.put("inid", this.nativeWebListener.getInstallationId());
         map.put("tsid", this.nativeWebListener.getInstallationId());
+        map.put("isSilentAuthSupported", String.valueOf(OtplessManager.IS_SILENT_AUTH_SUPPORTED));
         return map;
     }
 
@@ -237,12 +244,12 @@ public class NativeWebManager implements OtplessWebListener {
         }
         ApiManager.getInstance().pushEvents(eventData, new ApiCallback<JSONObject>() {
             @Override
-            public void onSuccess(JSONObject data) {
+            public void onSuccess(@NonNull JSONObject data) {
                 Log.d("PUSH_EVENT", data.toString());
             }
 
             @Override
-            public void onError(Exception exception) {
+            public void onError(@NonNull Exception exception) {
                 exception.printStackTrace();
             }
         });
@@ -356,5 +363,13 @@ public class NativeWebManager implements OtplessWebListener {
                 onPhoneNumberSelectionResult(new Tuple<>(null, new Exception("User cancelled the hint selection")));
             }
         }
+    }
+
+    // key 42
+    @Override
+    public void getDataFromCellularNetwork(@NonNull final String connUrl) {
+        this.otplessCellularNetwork.openWithDataCellular(Uri.parse(connUrl), result ->
+            this.mWebView.callWebJs("onCellularNetworkResult", result.toString())
+        );
     }
 }

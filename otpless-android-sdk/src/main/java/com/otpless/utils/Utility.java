@@ -17,6 +17,7 @@ import androidx.browser.customtabs.CustomTabsIntent;
 import com.otpless.BuildConfig;
 import com.otpless.dto.Triple;
 import com.otpless.dto.Tuple;
+import com.otpless.main.OtplessManager;
 import com.otpless.main.OtplessRandomIdGenerator;
 import com.otpless.network.ApiCallback;
 import com.otpless.network.ApiManager;
@@ -84,6 +85,7 @@ public class Utility {
         }
         mAdditionalAppInfo.put("inid", generator.getInstallationId());
         mAdditionalAppInfo.put("tsid", generator.getTrackingSessionId());
+        mAdditionalAppInfo.put("isSilentAuthSupported", String.valueOf(OtplessManager.IS_SILENT_AUTH_SUPPORTED));
     }
 
     public static boolean isAppInstalled(final PackageManager packageManager, final String packageName) {
@@ -156,12 +158,12 @@ public class Utility {
         }
         ApiManager.getInstance().pushEvents(eventData, new ApiCallback<JSONObject>() {
             @Override
-            public void onSuccess(JSONObject data) {
+            public void onSuccess(@NonNull JSONObject data) {
                 Log.d("PUSH_EVENT", data.toString());
             }
 
             @Override
-            public void onError(Exception exception) {
+            public void onError(@NonNull Exception exception) {
                 exception.printStackTrace();
             }
         });

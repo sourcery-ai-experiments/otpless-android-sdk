@@ -64,7 +64,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
     private boolean isLoaderVisible = true;
     private boolean isRetryVisible = true;
     private boolean isContainerViewInvisible = false;
-    private static final String BASE_LOADING_URL = "https://otpless.com";
+    private static final String BASE_LOADING_URL = "https://otpless.tech";
 
     @NonNull String installId = "";
     @NonNull String trackingSessionId = "";
@@ -215,6 +215,7 @@ final class OtplessViewImpl implements OtplessView, OtplessViewContract, OnConne
         urlToLoad.appendQueryParameter("nbbs", String.valueOf(this.backSubscription));
         urlToLoad.appendQueryParameter("inid", this.installId);
         urlToLoad.appendQueryParameter("tsid", this.trackingSessionId);
+        urlToLoad.appendQueryParameter("isSilentAuthSupported", String.valueOf(OtplessManager.IS_SILENT_AUTH_SUPPORTED));
         return urlToLoad.build().toString();
     }
 
