@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -127,8 +128,17 @@ public class ApiManager {
                 conn.setRequestMethod("GET");
                 conn.setDoInput(true);
                 conn.setRequestProperty("Accept", "application/json");
-
+                conn.setInstanceFollowRedirects(false);
                 int responseCode = conn.getResponseCode();
+
+                if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP || responseCode == HttpURLConnection.HTTP_MOVED_PERM) {
+                    String newUrl = conn.getHeaderField("Location");
+                    Log.d("Otpless", "redirecting: " + newUrl);
+                    get(Uri.parse(newUrl), null, callback);
+                    return;
+                    // continue processing with the new connection
+                }
+
                 if (responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_CREATED ||
                         responseCode == HttpURLConnection.HTTP_ACCEPTED) {
                     // success
